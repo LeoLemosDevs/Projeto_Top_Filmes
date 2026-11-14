@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, LogIn, ArrowRight } from "lucide-react";
+import { Mail, Lock, LogIn, ArrowRight, AlertTriangle, Send } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,10 +12,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendFeedback, setResendFeedback] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setUnverifiedEmail(null);
+    setResendFeedback(null);
     setLoading(true);
 
     try {
@@ -27,6 +32,9 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (!res.ok) {
+        if (data.unverified) {
+          setUnverifiedEmail(data.email || email);
+        }
         throw new Error(data.error || "Falha no login.");
       }
 
@@ -39,15 +47,31 @@ export default function LoginPage() {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+    setResending(true);
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: unverifiedEmail }),
+      });
+      const data = await res.json();
+      setResendFeedback(data.message || "Link reenviado com sucesso!");
+    } catch {
+      setResendFeedback("Falha ao reenviar e-mail.");
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center px-4 py-24 relative">
-      {/* BACKGROUND POSTERS OVERLAY */}
       <div className="absolute inset-0 bg-brand-dark z-0">
         <div className="absolute inset-0 bg-radial-at-c from-brand-blue/15 via-transparent to-brand-dark" />
       </div>
 
       <div className="relative z-10 w-full max-w-md bg-brand-surface/90 border border-brand-surfaceBorder rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
-        {/* LOGO & TITLE */}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-brand-gold shadow-glowGold mb-3">
             <Image
@@ -67,8 +91,24 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 rounded-xl bg-brand-red/10 border border-brand-red text-red-300 text-xs text-center font-medium">
-            {error}
+          <div className="mb-6 p-4 rounded-xl bg-brand-red/10 border border-brand-red text-red-300 text-xs font-medium space-y-2">
+            <p className="text-center">{error}</p>
+            {unverifiedEmail && (
+              <div className="pt-2 border-t border-brand-red/30 text-center">
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resending}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-gold text-brand-dark font-extrabold text-[11px] uppercase tracking-wider shadow-sm hover:scale-105 transition-all"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>{resending ? "Reenviando..." : "Reenviar Link de Confirmação"}</span>
+                </button>
+                {resendFeedback && (
+                  <p className="text-[11px] text-green-400 mt-2 font-bold">{resendFeedback}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -91,9 +131,17 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
-              Senha
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                Senha
+              </label>
+              <Link
+                href="/esqueci-senha"
+                className="text-[11px] text-brand-gold hover:underline font-semibold"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input

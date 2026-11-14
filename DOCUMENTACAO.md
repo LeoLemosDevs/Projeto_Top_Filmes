@@ -39,7 +39,8 @@ A **Top Filmes** foi construída para resgatar a era de ouro do cinema e das gra
 - **Framework Web**: Next.js 14+ (App Router) com TypeScript e Tailwind CSS.
 - **Banco de Dados Gratuito**: **Turso** (SQLite distribuído em Edge com 9GB gratuitos no plano Hobby).
 - **Driver de Conexão**: `@libsql/client` (compatível com conexão remota ao Turso e fallback automático para SQLite local).
-- **Autenticação**: Sessão JWT segura com cookies HttpOnly e criptografia via `bcryptjs`.
+- **Autenticação & Segurança**: Sessão JWT segura via cookies HttpOnly com hash `bcryptjs`, **confirmação obrigatória de conta via e-mail** e **recuperação de senha via e-mail** com tokens criptográficos temporários.
+- **Serviço de E-mail**: `nodemailer` compatível com Gmail SMTP (ou Brevo / SendGrid / Mailtrap) e modo simulação com link direto em desenvolvimento.
 - **Hospedagem Gratuita**: **Vercel** (Integração contínua com o repositório GitHub).
 - **Mobile**: Preparado para **Capacitor** e **PWA (Progressive Web App)** para empacotamento em APK/AAB para a Google Play Store.
 
@@ -117,6 +118,10 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   role TEXT DEFAULT 'USER', -- 'USER' ou 'ADMIN'
   avatar_url TEXT,
+  email_verified INTEGER DEFAULT 0,
+  verification_token TEXT,
+  reset_token TEXT,
+  reset_token_expires DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

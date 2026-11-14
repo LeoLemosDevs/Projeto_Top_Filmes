@@ -4,6 +4,8 @@ import { initDb } from "@/lib/init-db";
 import { signToken } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     await initDb();
@@ -16,9 +18,11 @@ export async function POST(req: Request) {
       );
     }
 
+    const cleanEmail = email.toLowerCase().trim();
+
     const result = await db.execute({
-      sql: `SELECT id, name, email, password_hash, role FROM users WHERE email = ?`,
-      args: [email.toLowerCase().trim()],
+      sql: `SELECT id, name, email, password_hash, role, email_verified FROM users WHERE email = ?`,
+      args: [cleanEmail],
     });
 
     if (result.rows.length === 0) {
@@ -38,6 +42,18 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "E-mail ou senha incorretos." },
         { status: 401 }
+      );
+    }
+
+    // Verificar se o e-mail foi confirmado
+    if (user.email_verified !== 1 && Number(user.email_verified) !== 1) {
+      return NextResponse.json(
+        {
+          error: "Sua conta ainda não foi ativada. Verifique o link de confirmação enviado para o seu e-mail.",
+          unverified: true,
+          email: user.email,
+        },
+        { status: 403 }
       );
     }
 

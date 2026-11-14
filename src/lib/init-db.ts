@@ -16,9 +16,27 @@ export async function initDb() {
       password_hash TEXT NOT NULL,
       role TEXT DEFAULT 'USER',
       avatar_url TEXT,
+      email_verified INTEGER DEFAULT 0,
+      verification_token TEXT,
+      reset_token TEXT,
+      reset_token_expires DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Migrações dinâmicas para adicionar colunas se a tabela já existia antes
+  try {
+    await db.execute(`ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0;`);
+  } catch {}
+  try {
+    await db.execute(`ALTER TABLE users ADD COLUMN verification_token TEXT;`);
+  } catch {}
+  try {
+    await db.execute(`ALTER TABLE users ADD COLUMN reset_token TEXT;`);
+  } catch {}
+  try {
+    await db.execute(`ALTER TABLE users ADD COLUMN reset_token_expires DATETIME;`);
+  } catch {}
 
   // 2. Tabela de Filmes
   await db.execute(`
@@ -110,7 +128,7 @@ export async function initDb() {
 
   if (adminCheck.rows.length === 0) {
     await db.execute({
-      sql: `INSERT INTO users (id, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO users (id, name, email, password_hash, role, email_verified) VALUES (?, ?, ?, ?, ?, 1)`,
       args: [
         "usr_leoadm_01",
         "leoadm",
@@ -122,7 +140,7 @@ export async function initDb() {
   } else {
     // Atualiza a senha e role para garantir o acesso solicitado
     await db.execute({
-      sql: `UPDATE users SET name = 'leoadm', password_hash = ?, role = 'ADMIN' WHERE email = ?`,
+      sql: `UPDATE users SET name = 'leoadm', password_hash = ?, role = 'ADMIN', email_verified = 1 WHERE email = ?`,
       args: [adminHash, adminEmail.toLowerCase().trim()],
     });
   }
@@ -138,7 +156,7 @@ export async function initDb() {
 
   if (userCheck.rows.length === 0) {
     await db.execute({
-      sql: `INSERT INTO users (id, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO users (id, name, email, password_hash, role, email_verified) VALUES (?, ?, ?, ?, ?, 1)`,
       args: [
         "usr_leojulhos_02",
         "leojulhos",
@@ -149,7 +167,7 @@ export async function initDb() {
     });
   } else {
     await db.execute({
-      sql: `UPDATE users SET name = 'leojulhos', password_hash = ?, role = 'USER' WHERE email = ?`,
+      sql: `UPDATE users SET name = 'leojulhos', password_hash = ?, role = 'USER', email_verified = 1 WHERE email = ?`,
       args: [userHash, userEmail.toLowerCase().trim()],
     });
   }
