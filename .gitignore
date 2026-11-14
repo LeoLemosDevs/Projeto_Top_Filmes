@@ -1,0 +1,39 @@
+# Dependências
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Banco de dados local SQLite / Turso
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+topfilmes.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# SO
+.DS_Store
+Thumbs.db

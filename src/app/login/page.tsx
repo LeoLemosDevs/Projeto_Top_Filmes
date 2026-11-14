@@ -1,0 +1,145 @@
+"use client";
+
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Mail, Lock, LogIn, ArrowRight } from "lucide-react";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Falha no login.");
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center px-4 py-24 relative">
+      {/* BACKGROUND POSTERS OVERLAY */}
+      <div className="absolute inset-0 bg-brand-dark z-0">
+        <div className="absolute inset-0 bg-radial-at-c from-brand-blue/15 via-transparent to-brand-dark" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md bg-brand-surface/90 border border-brand-surfaceBorder rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
+        {/* LOGO & TITLE */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-brand-gold shadow-glowGold mb-3">
+            <Image
+              src="/logo.jfif"
+              alt="Top Filmes Logo"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+          <h1 className="text-2xl font-black text-white uppercase tracking-wider">
+            Entrar no <span className="text-brand-gold">Top Filmes</span>
+          </h1>
+          <p className="text-gray-400 text-xs mt-1">
+            Acesse seu histórico, lista de favoritos e muito mais.
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3 rounded-xl bg-brand-red/10 border border-brand-red text-red-300 text-xs text-center font-medium">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
+              E-mail
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="email"
+                required
+                placeholder="seu.email@exemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold transition-colors"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
+              Senha
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold transition-colors"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 bg-brand-gold hover:bg-brand-goldHover text-brand-dark py-3.5 rounded-xl font-extrabold text-sm uppercase tracking-wider transition-all shadow-glowGold hover:scale-[1.02] active:scale-[0.98] mt-2"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-brand-dark border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <LogIn className="w-4 h-4" />
+                <span>Acessar Plataforma</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* ADMIN CREDENTIALS HINT */}
+        <div className="mt-6 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder/60 rounded-xl text-[11px] text-gray-400 text-center">
+          <p className="font-semibold text-gray-300 mb-0.5">Conta Administrador Padrão:</p>
+          <p>E-mail: <span className="text-brand-gold font-mono">admin@topfilmes.com</span></p>
+          <p>Senha: <span className="text-brand-gold font-mono">admin123456</span></p>
+        </div>
+
+        <div className="mt-6 text-center text-xs text-gray-400">
+          Ainda não tem conta?{" "}
+          <Link
+            href="/cadastro"
+            className="text-brand-gold hover:underline font-bold inline-flex items-center gap-1"
+          >
+            Criar conta grátis <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
