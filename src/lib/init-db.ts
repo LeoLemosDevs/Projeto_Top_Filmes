@@ -7,6 +7,17 @@ let initialized = false;
 export async function initDb() {
   if (initialized) return;
 
+  try {
+    // Se a tabela users já existir, o banco já está estruturado
+    const check = await db.execute("SELECT id FROM users LIMIT 1");
+    if (check.rows.length >= 0) {
+      initialized = true;
+      return;
+    }
+  } catch {
+    // Tabela não existe ainda, continuar com a criação
+  }
+
   // 1. Tabela de Usuários
   await db.execute(`
     CREATE TABLE IF NOT EXISTS users (
