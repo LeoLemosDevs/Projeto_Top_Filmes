@@ -30,7 +30,13 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const responseText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error("Erro de comunicação com o servidor. Aguarde alguns instantes e tente novamente.");
+      }
       if (!res.ok) {
         if (data.unverified) {
           setUnverifiedEmail(data.email || email);
