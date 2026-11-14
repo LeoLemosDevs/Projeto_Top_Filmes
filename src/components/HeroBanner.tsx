@@ -54,7 +54,7 @@ export default function HeroBanner({ movie, onOpenModal }: HeroBannerProps) {
       {/* BACKGROUND IMAGE / BANNER */}
       <div className="absolute inset-0">
         <Image
-          src={movie.cover_image_url || "/logo.jfif"}
+          src={movie.cover_image_url || "/logo.png"}
           alt={movie.title}
           fill
           priority

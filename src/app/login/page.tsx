@@ -75,7 +75,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center text-center mb-8">
           <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-brand-gold shadow-glowGold mb-3">
             <Image
-              src="/logo.jfif"
+              src="/logo.png"
               alt="Top Filmes Logo"
               fill
               className="object-cover"

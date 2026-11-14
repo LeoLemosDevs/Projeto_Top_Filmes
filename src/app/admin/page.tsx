@@ -379,7 +379,7 @@ export default function AdminPage() {
                   >
                     <div className="relative w-12 aspect-dvd rounded-lg overflow-hidden shrink-0 bg-black">
                       <Image
-                        src={m.cover_image_url || "/logo.jfif"}
+                        src={m.cover_image_url || "/logo.png"}
                         alt={m.title}
                         fill
                         className="object-cover"

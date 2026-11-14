@@ -65,7 +65,7 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
         {/* TOP IMAGE / BANNER */}
         <div className="relative w-full h-64 sm:h-80 bg-black flex-shrink-0">
           <Image
-            src={movie.cover_image_url || "/logo.jfif"}
+            src={movie.cover_image_url || "/logo.png"}
             alt={movie.title}
             fill
             className="object-cover opacity-75"

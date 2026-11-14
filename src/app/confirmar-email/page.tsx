@@ -42,7 +42,7 @@ function ConfirmEmailContent() {
       <div className="relative z-10 w-full max-w-md bg-brand-surface border border-brand-surfaceBorder rounded-3xl p-8 shadow-2xl text-center">
         <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-brand-gold shadow-glowGold mx-auto mb-6">
           <Image
-            src="/logo.jfif"
+            src="/logo.png"
             alt="Top Filmes Logo"
             fill
             className="object-cover"

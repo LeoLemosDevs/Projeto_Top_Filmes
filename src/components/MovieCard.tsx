@@ -59,7 +59,7 @@ export default function MovieCard({
 
         {/* POSTER IMAGE */}
         <Image
-          src={movie.cover_image_url || "/logo.jfif"}
+          src={movie.cover_image_url || "/logo.png"}
           alt={movie.title}
           fill
           sizes="(max-width: 640px) 144px, (max-width: 768px) 176px, 208px"

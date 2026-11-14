@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description: "Plataforma de streaming com os grandes clássicos do cinema, décadas de 70, 80, 90 e 2000, Sessão da Tarde, Super Cine e muito mais.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/logo.jfif",
-    apple: "/logo.jfif",
+    icon: "/logo.png",
+    apple: "/logo.png",
   },
 };
 
