@@ -98,24 +98,59 @@ export async function initDb() {
     });
   }
 
-  // Criar administrador padrão se não houver
+  // Criar ou atualizar Administrador padrão (leoadm)
+  const adminEmail = process.env.ADMIN_INITIAL_EMAIL || "professorleolemos@gmail.com";
   const adminCheck = await db.execute({
     sql: `SELECT id FROM users WHERE email = ?`,
-    args: [`admin@topfilmes.com`],
+    args: [adminEmail.toLowerCase().trim()],
   });
 
+  const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "leo250778";
+  const adminHash = await bcrypt.hash(adminPassword, 10);
+
   if (adminCheck.rows.length === 0) {
-    const defaultPassword = process.env.ADMIN_INITIAL_PASSWORD || "admin123456";
-    const passwordHash = await bcrypt.hash(defaultPassword, 10);
     await db.execute({
       sql: `INSERT INTO users (id, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)`,
       args: [
-        "user_admin_01",
-        "Administrador Top Filmes",
-        "admin@topfilmes.com",
-        passwordHash,
+        "usr_leoadm_01",
+        "leoadm",
+        adminEmail.toLowerCase().trim(),
+        adminHash,
         "ADMIN",
       ],
+    });
+  } else {
+    // Atualiza a senha e role para garantir o acesso solicitado
+    await db.execute({
+      sql: `UPDATE users SET name = 'leoadm', password_hash = ?, role = 'ADMIN' WHERE email = ?`,
+      args: [adminHash, adminEmail.toLowerCase().trim()],
+    });
+  }
+
+  // Criar ou atualizar Usuário padrão (leojulhos)
+  const userEmail = "leojulhos@gmail.com";
+  const userCheck = await db.execute({
+    sql: `SELECT id FROM users WHERE email = ?`,
+    args: [userEmail.toLowerCase().trim()],
+  });
+
+  const userHash = await bcrypt.hash("123456", 10);
+
+  if (userCheck.rows.length === 0) {
+    await db.execute({
+      sql: `INSERT INTO users (id, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)`,
+      args: [
+        "usr_leojulhos_02",
+        "leojulhos",
+        userEmail.toLowerCase().trim(),
+        userHash,
+        "USER",
+      ],
+    });
+  } else {
+    await db.execute({
+      sql: `UPDATE users SET name = 'leojulhos', password_hash = ?, role = 'USER' WHERE email = ?`,
+      args: [userHash, userEmail.toLowerCase().trim()],
     });
   }
 
