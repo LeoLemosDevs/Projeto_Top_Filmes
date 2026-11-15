@@ -14,7 +14,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  Play
+  Play,
+  Download
 } from "lucide-react";
 import { OFFICIAL_GENRES } from "@/lib/types";
 
@@ -159,6 +160,17 @@ export default function Navbar() {
 
         {/* RIGHT ACTIONS: SEARCH & USER */}
         <div className="flex items-center gap-3">
+          {/* BOTÃO BAIXAR APP */}
+          <Link
+            href="/baixar-app"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-500 hover:from-emerald-500 hover:to-green-400 text-white text-xs font-bold tracking-wide transition-all shadow-md hover:scale-105 active:scale-95 border border-emerald-400/40"
+            title="Baixar App para Android / TV Box"
+          >
+            <Download className="w-3.5 h-3.5 text-white animate-bounce" />
+            <span className="hidden sm:inline">Baixar App</span>
+            <span className="sm:hidden">App</span>
+          </Link>
+
           {/* SEARCH BAR */}
           <form onSubmit={handleSearch} className="relative flex items-center">
             {isSearchOpen ? (

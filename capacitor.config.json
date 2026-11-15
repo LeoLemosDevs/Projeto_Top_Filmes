@@ -1,8 +1,9 @@
 {
   "appId": "com.topfilmes.app",
   "appName": "Top Filmes",
-  "webDir": "out",
+  "webDir": "public",
   "server": {
+    "url": "https://topfilmes-six.vercel.app",
     "cleartext": true
   },
   "android": {

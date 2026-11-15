@@ -1,0 +1,52 @@
+name: Compilar APK e AAB Android (Top Filmes v1.0)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Gerar APK e AAB para Google Play Store
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17 (JDK)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Permissão de Execução para o Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+
+      - name: Compilar APK de Lançamento (Release APK)
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Compilar Android App Bundle para Play Store (AAB)
+        run: |
+          cd android
+          ./gradlew bundleRelease --no-daemon
+
+      - name: Salvar APK Gerado (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: TopFilmes-v1.0-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Salvar AAB Gerado para Google Play Store (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: TopFilmes-v1.0-PlayStore-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab

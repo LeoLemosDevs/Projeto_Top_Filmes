@@ -13,7 +13,10 @@ import {
   ShieldAlert, 
   ExternalLink,
   Check,
-  AlertCircle
+  AlertCircle,
+  Pencil,
+  Save,
+  X
 } from "lucide-react";
 import { OFFICIAL_CATEGORIES, OFFICIAL_GENRES, Movie } from "@/lib/types";
 
@@ -23,6 +26,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Edit Mode State
+  const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
+  const [loadingMovieEdit, setLoadingMovieEdit] = useState(false);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -70,14 +77,61 @@ export default function AdminPage() {
     }
   };
 
+  const handleStartEdit = async (m: Movie) => {
+    setEditingMovie(m);
+    setTitle(m.title);
+    setReleaseYear(m.release_year);
+    setSynopsis(m.synopsis);
+    setGenre(m.genre);
+    setCoverImageUrl(m.cover_image_url);
+    setVideoUrl(m.video_url);
+    setDurationMinutes(m.duration_minutes || 110);
+    setIsFeatured(Boolean(m.is_featured));
+    setFeedback(null);
+
+    // Rolar até o topo do formulário
+    window.scrollTo({ top: 100, behavior: "smooth" });
+
+    // Buscar categorias atribuídas ao filme
+    try {
+      setLoadingMovieEdit(true);
+      const res = await fetch(`/api/movies/${m.id}`);
+      const data = await res.json();
+      if (data?.movie?.categories) {
+        setSelectedCategories(data.movie.categories.map((c: any) => c.slug));
+      }
+    } catch (e) {
+      console.error("Erro ao carregar categorias do filme:", e);
+    } finally {
+      setLoadingMovieEdit(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMovie(null);
+    setTitle("");
+    setReleaseYear(new Date().getFullYear());
+    setSynopsis("");
+    setGenre(OFFICIAL_GENRES[0]);
+    setCoverImageUrl("");
+    setVideoUrl("");
+    setDurationMinutes(110);
+    setIsFeatured(false);
+    setSelectedCategories(["anos-80"]);
+    setFeedback(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback(null);
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/movies", {
-        method: "POST",
+      const url = editingMovie ? `/api/movies/${editingMovie.id}` : "/api/movies";
+      const method = editingMovie ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
@@ -94,16 +148,18 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Erro ao publicar filme.");
+        throw new Error(data.error || (editingMovie ? "Erro ao atualizar filme." : "Erro ao publicar filme."));
       }
 
-      setFeedback({ type: "success", message: "Filme publicado com sucesso no Top Filmes!" });
+      setFeedback({ 
+        type: "success", 
+        message: editingMovie 
+          ? `Filme "${title}" atualizado com sucesso!` 
+          : "Filme publicado com sucesso no Top Filmes!" 
+      });
+
       // Reset form
-      setTitle("");
-      setSynopsis("");
-      setCoverImageUrl("");
-      setVideoUrl("");
-      setIsFeatured(false);
+      handleCancelEdit();
       loadMovies();
     } catch (err: any) {
       setFeedback({ type: "error", message: err.message });
@@ -171,11 +227,36 @@ export default function AdminPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* FORMULÁRIO DE PUBLICAÇÃO */}
+        {/* FORMULÁRIO DE PUBLICAÇÃO E EDIÇÃO */}
         <div className="lg:col-span-7 bg-brand-surface border border-brand-surfaceBorder rounded-3xl p-6 sm:p-8 shadow-2xl">
-          <h2 className="text-lg font-black text-white uppercase tracking-wide flex items-center gap-2 mb-6 text-brand-gold">
-            <PlusCircle className="w-5 h-5" /> Publicar Novo Filme
-          </h2>
+          <div className="flex items-center justify-between mb-6 pb-3 border-b border-brand-surfaceBorder">
+            <h2 className="text-lg font-black text-white uppercase tracking-wide flex items-center gap-2 text-brand-gold">
+              {editingMovie ? (
+                <>
+                  <Pencil className="w-5 h-5 text-brand-gold" />
+                  <span>
+                    Editar Filme: <span className="text-white font-semibold underline">{editingMovie.title}</span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <PlusCircle className="w-5 h-5" />
+                  <span>Publicar Novo Filme</span>
+                </>
+              )}
+            </h2>
+
+            {editingMovie && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-700/60 hover:bg-gray-600 text-gray-200 hover:text-white text-xs font-bold transition-all border border-gray-600"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Cancelar Edição</span>
+              </button>
+            )}
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* TÍTULO E ANO */}
@@ -340,11 +421,20 @@ export default function AdminPage() {
             {/* SUBMIT BUTTON */}
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2 bg-brand-gold hover:bg-brand-goldHover text-brand-dark py-3.5 rounded-xl font-extrabold text-sm uppercase tracking-wider transition-all shadow-glowGold hover:scale-[1.01] active:scale-[0.99]"
+              disabled={isSubmitting || loadingMovieEdit}
+              className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-extrabold text-sm uppercase tracking-wider transition-all shadow-glowGold hover:scale-[1.01] active:scale-[0.99] ${
+                editingMovie
+                  ? "bg-gradient-to-r from-amber-500 via-brand-gold to-yellow-500 text-brand-dark"
+                  : "bg-brand-gold hover:bg-brand-goldHover text-brand-dark"
+              }`}
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-brand-dark border-t-transparent rounded-full animate-spin" />
+              ) : editingMovie ? (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Salvar Alterações do Filme</span>
+                </>
               ) : (
                 <>
                   <PlusCircle className="w-4 h-4" />
@@ -375,7 +465,11 @@ export default function AdminPage() {
                 {movies.map((m) => (
                   <div
                     key={m.id}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-brand-surfaceElevated border border-brand-surfaceBorder/80 hover:border-brand-gold/40 transition-colors"
+                    className={`flex items-center gap-3 p-3 rounded-2xl bg-brand-surfaceElevated border transition-all ${
+                      editingMovie?.id === m.id
+                        ? "border-brand-gold ring-1 ring-brand-gold/60 shadow-glowGold/30"
+                        : "border-brand-surfaceBorder/80 hover:border-brand-gold/40"
+                    }`}
                   >
                     <div className="relative w-12 aspect-dvd rounded-lg overflow-hidden shrink-0 bg-black">
                       <Image
@@ -406,10 +500,22 @@ export default function AdminPage() {
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleStartEdit(m)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          editingMovie?.id === m.id
+                            ? "bg-brand-gold text-brand-dark"
+                            : "text-gray-400 hover:text-brand-gold hover:bg-brand-surfaceBorder/40"
+                        }`}
+                        title="Editar Informações do Filme"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+
                       <Link
                         href={`/assistir/${m.id}`}
                         target="_blank"
-                        className="p-1.5 text-gray-400 hover:text-brand-gold transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-brand-blueLight hover:bg-brand-surfaceBorder/40 rounded-lg transition-colors"
                         title="Testar Player"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -417,7 +523,7 @@ export default function AdminPage() {
 
                       <button
                         onClick={() => handleDelete(m.id, m.title)}
-                        className="p-1.5 text-gray-400 hover:text-brand-red transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-brand-red hover:bg-brand-surfaceBorder/40 rounded-lg transition-colors"
                         title="Excluir Filme"
                       >
                         <Trash2 className="w-4 h-4" />

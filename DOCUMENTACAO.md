@@ -49,52 +49,78 @@ A plataforma **Top Filmes** resgata a era de ouro do cinema e das grandes sessõ
 
 ## 3. Gêneros e Categorias Nostálgicas da TV
 
-### 🎬 Gêneros Cadastráveis (13):
+### 🎬 Gêneros Cadastráveis:
 1. Ação
 2. Policial
 3. Faroeste
-4. Terror
-5. Suspense
-6. Clássicos
-7. Drama
-8. Artes Marciais
-9. Ficção Científica
-10. Aventura
-11. Anime
-12. Desenho
-13. Romance
+4. Bíblico
+5. Terror
+6. Suspense
+7. Clássicos
+8. Drama
+9. Comédia
+10. Artes Marciais
+11. Ficção Científica
+12. Aventura
+13. Anime
+14. Desenho
+15. Romance
 
-### 📺 Categorias / Sessões da Página Inicial (13 Trilhos):
-1. **Anos 70**
-2. **Anos 80**
-3. **Anos 90**
-4. **Anos 2000**
-5. **Sessão da Tarde**
-6. **Temperatura Máxima**
-7. **Tele Cine**
-8. **Super Cine**
-9. **Sessão das 10**
-10. **Força Total**
-11. **Corujão**
-12. **Intercine**
-13. **Clássicos**
+### 📺 Categorias / Sessões da Página Inicial (15 Trilhos):
+1. **Anos 70** (`anos-70`)
+2. **Anos 80** (`anos-80`)
+3. **Anos 90** (`anos-90`)
+4. **Anos 2000** (`anos-2000`)
+5. **Sessão da Tarde** (`sessao-da-tarde`)
+6. **Temperatura Máxima** (`temperatura-maxima`)
+7. **Tele Cine** (`tele-cine`)
+8. **Super Cine** (`super-cine`)
+9. **Sessão das 10** (`sessao-das-10`)
+10. **Força Total** (`forca-total`)
+11. **Corujão** (`corujao`)
+12. **Intercine** (`intercine`)
+13. **Clássicos** (`classicos`)
+14. **Filmes Bíblicos** (`filmes-biblicos`)
+15. **Faroeste** (`faroeste`)
 
 ---
 
-## 4. Painel do Administrador & Publicação
+## 4. Painel do Administrador & Edição de Filmes
 
 O painel administrativo em `/admin` é restrito a contas com permissão `ADMIN`:
 1. **Publicação Completa**:
    - **Título**: Nome do filme.
    - **Ano**: Ano de lançamento.
    - **Sinopse**: Enredo e resumo da obra.
-   - **Gênero**: Seleção entre os 13 gêneros oficiais.
-   - **Capa do Filme**: URL da imagem na proporção 2:3.
+   - **Gênero**: Seleção entre os gêneros oficiais (incluindo Bíblico e Faroeste).
+   - **Capa do Filme**: URL da imagem na proporção 2:3 (DVD).
    - **Link do Vídeo**: Link do Google Drive, YouTube, Vimeo ou link direto MP4/HLS.
    - **Categorias**: Associação a uma ou múltiplas sessões da Home.
    - **Super Destaque**: Ativar exibição no banner principal do topo.
-2. **Gerenciamento**:
-   - Monitoramento do total de visualizações por filme e exclusão com 1 clique.
+2. **Edição Completa de Filmes Existentes**:
+   - Botão **Editar (Ícone de Lápis)** na listagem de filmes.
+   - Carrega instantaneamente todos os dados do filme (inclusive as categorias já marcadas).
+   - Ativa o **Modo Edição** com banner dourado de destaque e botão para **Cancelar Edição**.
+   - Salva via `PUT /api/movies/[id]` com re-sincronização automática das categorias no banco de dados Turso.
+3. **Gerenciamento e Exclusão**:
+   - Monitoramento do total de visualizações por filme e exclusão com 1 clique (`DELETE /api/movies/[id]`).
+
+---
+
+## 5. Aplicativo Android & Botão de Download
+
+1. **Botão de Download no Topo e no Rodapé**:
+   - Botão destacado verde/esmeralda no topo da página (`Navbar`) com ícone animado de download.
+   - Atalho rápido no menu inferior do celular (`BottomNav`).
+2. **Página Oficial de Download (`/baixar-app`)**:
+   - **Download do APK Direto (v1.0)** para instalação em celulares Android, Smart TVs e TV Box.
+   - **Instalação Instantânea PWA**: Permite adicionar o Top Filmes como aplicativo na tela inicial sem precisar de downloads externos.
+   - **Passo a passo ilustrado** ensinando o usuário a baixar e instalar o APK no Android.
+   - **Status Google Play Store**: Informações sobre a publicação oficial na loja do Google.
+3. **Compilação Automática via GitHub Actions (`.github/workflows/build-android.yml`)**:
+   - Todo push na branch `main` executa um workflow no GitHub que compila:
+     - `app-release.apk` (APK assinado pronto para uso direto).
+     - `app-release.aab` (Android App Bundle para envio ao Google Play Console).
 
 ---
 

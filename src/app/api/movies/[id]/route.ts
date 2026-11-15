@@ -90,31 +90,56 @@ export async function PUT(
 
     const processed = video_url ? processVideoUrl(video_url) : null;
 
+    // Buscar filme existente primeiro
+    const existing = await db.execute({
+      sql: `SELECT * FROM movies WHERE id = ?`,
+      args: [movieId],
+    });
+
+    if (existing.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Filme não encontrado para edição." },
+        { status: 404 }
+      );
+    }
+
+    const current: any = existing.rows[0];
+
+    const newTitle = title !== undefined && title !== null ? String(title).trim() : current.title;
+    const newYear = release_year !== undefined && release_year !== null ? parseInt(String(release_year), 10) : current.release_year;
+    const newSynopsis = synopsis !== undefined && synopsis !== null ? String(synopsis).trim() : current.synopsis;
+    const newGenre = genre !== undefined && genre !== null ? String(genre).trim() : current.genre;
+    const newCover = cover_image_url !== undefined && cover_image_url !== null ? String(cover_image_url).trim() : current.cover_image_url;
+    const newVideo = video_url !== undefined && video_url !== null ? String(video_url).trim() : current.video_url;
+    const newVideoType = processed ? processed.type : current.video_type;
+    const newDuration = duration_minutes !== undefined && duration_minutes !== null ? parseInt(String(duration_minutes), 10) : current.duration_minutes;
+    const newFeatured = is_featured !== undefined && is_featured !== null ? (is_featured ? 1 : 0) : current.is_featured;
+
     await db.execute({
       sql: `
         UPDATE movies SET
-          title = COALESCE(?, title),
-          release_year = COALESCE(?, release_year),
-          synopsis = COALESCE(?, synopsis),
-          genre = COALESCE(?, genre),
-          cover_image_url = COALESCE(?, cover_image_url),
-          video_url = COALESCE(?, video_url),
-          video_type = COALESCE(?, video_type),
-          duration_minutes = COALESCE(?, duration_minutes),
-          is_featured = COALESCE(?, is_featured),
+          title = ?,
+          release_year = ?,
+          synopsis = ?,
+          genre = ?,
+          cover_image_url = ?,
+          video_url = ?,
+          video_type = ?,
+          duration_minutes = ?,
+          is_featured = ?,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `,
       args: [
-        title,
-        release_year,
-        synopsis,
-        genre,
-        cover_image_url,
-        video_url,
-        processed?.type,
-        duration_minutes,
-        is_featured !== undefined ? (is_featured ? 1 : 0) : undefined,
+        newTitle,
+        newYear,
+        newSynopsis,
+        newGenre,
+        newCover,
+        newVideo,
+        newVideoType,
+        newDuration,
+        newFeatured,
         movieId,
       ],
     });

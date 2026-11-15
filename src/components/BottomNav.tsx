@@ -9,7 +9,8 @@ import {
   Bookmark, 
   History as HistoryIcon, 
   User, 
-  ShieldAlert 
+  ShieldAlert,
+  Download
 } from "lucide-react";
 
 export default function BottomNav() {
@@ -59,12 +60,22 @@ export default function BottomNav() {
 
         <Link
           href="/historico"
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition-colors ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
             pathname === "/historico" ? "text-brand-gold font-bold" : "text-gray-400 hover:text-gray-200"
           }`}
         >
           <HistoryIcon className="w-5 h-5" />
           <span className="text-[10px] tracking-tight">Histórico</span>
+        </Link>
+
+        <Link
+          href="/baixar-app"
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
+            pathname === "/baixar-app" ? "text-emerald-400 font-bold" : "text-gray-400 hover:text-emerald-400"
+          }`}
+        >
+          <Download className="w-5 h-5 text-emerald-400" />
+          <span className="text-[10px] tracking-tight text-emerald-400 font-bold">App</span>
         </Link>
 
         {isAdmin ? (
