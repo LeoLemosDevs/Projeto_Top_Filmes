@@ -53,20 +53,21 @@ A plataforma **Top Filmes** resgata a era de ouro do cinema e das grandes sessõ
 1. Ação
 2. Policial
 3. Faroeste
-4. Bíblico
-5. Terror
-6. Suspense
-7. Clássicos
-8. Drama
-9. Comédia
-10. Artes Marciais
-11. Ficção Científica
-12. Aventura
-13. Anime
-14. Desenho
-15. Romance
+4. Guerra
+5. Bíblico
+6. Terror
+7. Suspense
+8. Clássicos
+9. Drama
+10. Comédia
+11. Artes Marciais
+12. Ficção Científica
+13. Aventura
+14. Anime
+15. Desenho
+16. Romance
 
-### 📺 Categorias / Sessões da Página Inicial (15 Trilhos):
+### 📺 Categorias / Sessões da Página Inicial (17 Trilhos):
 1. **Anos 70** (`anos-70`)
 2. **Anos 80** (`anos-80`)
 3. **Anos 90** (`anos-90`)
@@ -82,6 +83,8 @@ A plataforma **Top Filmes** resgata a era de ouro do cinema e das grandes sessõ
 13. **Clássicos** (`classicos`)
 14. **Filmes Bíblicos** (`filmes-biblicos`)
 15. **Faroeste** (`faroeste`)
+16. **Guerra** (`guerra`)
+17. **Comédia** (`comedia`)
 
 ---
 

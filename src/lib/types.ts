@@ -67,12 +67,15 @@ export const OFFICIAL_CATEGORIES = [
   { name: "Clássicos", slug: "classicos" },
   { name: "Filmes Bíblicos", slug: "filmes-biblicos" },
   { name: "Faroeste", slug: "faroeste" },
+  { name: "Guerra", slug: "guerra" },
+  { name: "Comédia", slug: "comedia" },
 ] as const;
 
 export const OFFICIAL_GENRES = [
   "Ação",
   "Policial",
   "Faroeste",
+  "Guerra",
   "Bíblico",
   "Terror",
   "Suspense",
