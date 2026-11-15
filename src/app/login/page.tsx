@@ -177,21 +177,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* ADMIN & USER CREDENTIALS HINT */}
-        <div className="mt-6 p-3 bg-brand-surfaceElevated/60 border border-brand-surfaceBorder/60 rounded-xl text-[11px] text-gray-400 space-y-2">
-          <div>
-            <span className="font-bold text-brand-gold uppercase text-[10px]">👑 Administrador (Acesso Total):</span>
-            <p className="text-gray-300">E-mail: <span className="text-white font-mono">professorleolemos@gmail.com</span></p>
-            <p className="text-gray-300">Senha: <span className="text-brand-gold font-mono">leo250778</span></p>
-          </div>
-          <div className="pt-1.5 border-t border-brand-surfaceBorder/40">
-            <span className="font-bold text-blue-400 uppercase text-[10px]">👤 Usuário Comum:</span>
-            <p className="text-gray-300">E-mail: <span className="text-white font-mono">leojulhos@gmail.com</span></p>
-            <p className="text-gray-300">Senha: <span className="text-brand-gold font-mono">123456</span></p>
-          </div>
-        </div>
-
-        <div className="mt-6 text-center text-xs text-gray-400">
+        <div className="mt-8 text-center text-xs text-gray-400">
           Ainda não tem conta?{" "}
           <Link
             href="/cadastro"

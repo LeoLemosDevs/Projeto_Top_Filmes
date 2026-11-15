@@ -10,7 +10,6 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [message, setMessage] = useState("");
-  const [devLink, setDevLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +29,6 @@ export default function ForgotPasswordPage() {
 
       setSubmitted(true);
       setMessage(data.message);
-      if (data.devLink) setDevLink(data.devLink);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -68,20 +66,6 @@ export default function ForgotPasswordPage() {
             <p className="text-xs text-gray-300 leading-relaxed">
               {message}
             </p>
-
-            {devLink && (
-              <div className="p-3 bg-brand-surfaceElevated rounded-xl border border-brand-gold/40 text-left">
-                <span className="text-[10px] font-bold text-brand-gold uppercase block mb-1">
-                  💡 Modo Desenvolvimento (Link Direto):
-                </span>
-                <a
-                  href={devLink}
-                  className="text-xs text-blue-400 hover:underline break-all"
-                >
-                  {devLink}
-                </a>
-              </div>
-            )}
 
             <div className="pt-4">
               <Link
