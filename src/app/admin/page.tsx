@@ -356,25 +356,45 @@ export default function AdminPage() {
               />
             </div>
 
-            {/* LINK DO VÍDEO (GOOGLE DRIVE, YOUTUBE, ETC.) */}
+            {/* LINK DO VÍDEO (TOKYVIDEO, DAILYMOTION, GOOGLE DRIVE, YOUTUBE, ETC.) */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-gray-300 uppercase tracking-wider">
-                  Link do Vídeo (Google Drive, YouTube, Embed, MP4) *
+                  Link do Vídeo (TokyVideo, Dailymotion, Drive, YouTube, Embed) *
                 </label>
-                <span className="text-[10px] text-blue-400">Custo zero de storage</span>
+                <span className="text-[10px] text-emerald-400 font-bold">Multi-plataformas</span>
               </div>
               <input
-                type="url"
+                type="text"
                 required
-                placeholder="Cole o link do Google Drive (compartilhado) ou YouTube..."
+                placeholder="Cole o link do TokyVideo, Dailymotion, Google Drive, YouTube ou <iframe>..."
                 value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  const iframeMatch = val.match(/src=["']([^"']+)["']/i);
+                  if (iframeMatch && iframeMatch[1]) {
+                    val = iframeMatch[1];
+                  }
+                  setVideoUrl(val);
+                }}
                 className="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold"
               />
-              <p className="text-[11px] text-gray-400 mt-1">
-                💡 O sistema detecta automaticamente se é Google Drive e converte para embed sem travas, ou YouTube, Vimeo ou link direto.
+              <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                💡 <strong className="text-gray-300">Suporte completo:</strong> aceita links do <span className="text-brand-gold font-semibold">TokyVideo</span> (incluindo tokyvideo.com/br/video/...), <span className="text-blue-400 font-semibold">Dailymotion</span> (dailymotion.com ou dai.ly), <span className="text-emerald-400 font-semibold">Google Drive</span>, YouTube, Vimeo, Ok.ru, MP4 direto ou código <code className="text-white">&lt;iframe&gt;</code> completo.
               </p>
+              {videoUrl.trim() && (
+                <div className="mt-2">
+                  <a
+                    href={videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-brand-gold hover:underline font-semibold"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Testar link do vídeo em nova aba</span>
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* SELEÇÃO DE CATEGORIAS / SESSÕES DA HOME */}

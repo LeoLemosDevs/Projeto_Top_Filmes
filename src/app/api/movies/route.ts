@@ -144,6 +144,7 @@ export async function POST(req: Request) {
 
     const movieId = `mov_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const processed = processVideoUrl(video_url);
+    const finalVideoUrl = processed.src || video_url.trim();
 
     await db.execute({
       sql: `
@@ -160,7 +161,7 @@ export async function POST(req: Request) {
         synopsis.trim(),
         genre.trim(),
         cover_image_url.trim(),
-        video_url.trim(),
+        finalVideoUrl,
         processed.type,
         parseInt(duration_minutes, 10) || 100,
         is_featured ? 1 : 0,

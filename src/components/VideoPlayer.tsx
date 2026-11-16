@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Maximize, RotateCcw, Volume2, Shield } from "lucide-react";
+import { ArrowLeft, Maximize, RotateCcw, Volume2, Shield, ExternalLink } from "lucide-react";
 import { processVideoUrl } from "@/lib/video-helper";
 
 interface VideoPlayerProps {
@@ -113,13 +113,27 @@ export default function VideoPlayer({
           </span>
         </div>
 
-        <button
-          onClick={toggleFullScreen}
-          className="p-2.5 text-white hover:text-brand-gold bg-black/60 hover:bg-black/90 rounded-xl backdrop-blur-md border border-white/10 transition-colors"
-          title="Tela Cheia"
-        >
-          <Maximize className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {processed.src && (
+            <a
+              href={processed.src}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 text-white hover:text-brand-gold bg-black/60 hover:bg-black/90 rounded-xl backdrop-blur-md border border-white/10 transition-colors"
+              title="Abrir no player externo / site de origem"
+            >
+              <ExternalLink className="w-5 h-5" />
+            </a>
+          )}
+
+          <button
+            onClick={toggleFullScreen}
+            className="p-2.5 text-white hover:text-brand-gold bg-black/60 hover:bg-black/90 rounded-xl backdrop-blur-md border border-white/10 transition-colors"
+            title="Tela Cheia"
+          >
+            <Maximize className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* RENDERIZADOR DO PLAYER */}
@@ -135,11 +149,14 @@ export default function VideoPlayer({
           />
         ) : (
           <iframe
+            key={processed.src}
             src={processed.src}
             title={movieTitle}
-            className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+            className="w-full h-full border-0 bg-black"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen; screen-wake-lock"
             allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
           />
         )}
       </div>

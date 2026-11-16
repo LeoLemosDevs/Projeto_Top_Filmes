@@ -110,7 +110,7 @@ export async function PUT(
     const newSynopsis = synopsis !== undefined && synopsis !== null ? String(synopsis).trim() : current.synopsis;
     const newGenre = genre !== undefined && genre !== null ? String(genre).trim() : current.genre;
     const newCover = cover_image_url !== undefined && cover_image_url !== null ? String(cover_image_url).trim() : current.cover_image_url;
-    const newVideo = video_url !== undefined && video_url !== null ? String(video_url).trim() : current.video_url;
+    const newVideo = processed?.src || (video_url !== undefined && video_url !== null ? String(video_url).trim() : current.video_url);
     const newVideoType = processed ? processed.type : current.video_type;
     const newDuration = duration_minutes !== undefined && duration_minutes !== null ? parseInt(String(duration_minutes), 10) : current.duration_minutes;
     const newFeatured = is_featured !== undefined && is_featured !== null ? (is_featured ? 1 : 0) : current.is_featured;

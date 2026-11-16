@@ -15,7 +15,7 @@ export interface Movie {
   genre: string;
   cover_image_url: string;
   video_url: string;
-  video_type?: 'youtube' | 'gdrive' | 'direct' | 'embed';
+  video_type?: 'youtube' | 'gdrive' | 'vimeo' | 'tokyvideo' | 'dailymotion' | 'okru' | 'archive' | 'direct' | 'embed' | string;
   duration_minutes?: number;
   is_featured?: number | boolean;
   views_count?: number;

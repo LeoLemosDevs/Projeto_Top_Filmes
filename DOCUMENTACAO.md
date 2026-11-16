@@ -127,13 +127,27 @@ O painel administrativo em `/admin` é restrito a contas com permissão `ADMIN`:
 
 ---
 
-## 5. Armazenamento e Reprodução com Custo Zero
+## 6. Armazenamento e Reprodução Multi-Plataformas com Custo Zero
 
-Para permitir armazenamento gratuito ilimitado de mídia sem custos de servidor:
-- **Google Drive**: O sistema converte automaticamente links compartilhados normais (`/view?usp=sharing`) para o formato embutido sem travamentos (`/preview`).
-- **YouTube**: Transforma links comuns ou encurtados em player embutido sem distrações.
-- **Links Diretos / Embeds**: Compatível com MP4, WebM, HLS e reprodutores externos.
-- **Histórico Automático**: Conforme o usuário assiste, o player salva o progresso e o filme passa a constar na fileira **"Continuar Assistindo"** com barra vermelha.
+Para permitir armazenamento gratuito ilimitado de mídia sem custos de servidor de streaming:
+- **TokyVideo (Oficial & Localizado)**:
+  - O sistema converte automaticamente links de visualização (`tokyvideo.com/br/video/slug`, `tokyvideo.com/video/slug` ou códigos de incorporação) para o endpoint de embed limpo (`tokyvideo.com/embed/slug`), contornando a restrição de `X-Frame-Options: SAMEORIGIN` e garantindo reprodução instantânea sem anúncios abusivos.
+- **Dailymotion**:
+  - Aceita links normais (`dailymotion.com/video/id`), links curtos (`dai.ly/id`) e embeds legados, convertendo-os para o player moderno (`geo.dailymotion.com/player.html?video=id&autoplay=1`).
+- **Google Drive**:
+  - O sistema converte automaticamente links compartilhados normais (`/view?usp=sharing`) para o formato embutido sem travamentos (`/preview`).
+- **YouTube & Vimeo**:
+  - Transforma links comuns, shorts ou encurtados em player embutido sem distrações.
+- **Ok.ru (Odnoklassniki) & Internet Archive**:
+  - Suporte nativo para acervos de filmes clássicos e dublados.
+- **Extração Automática de Códigos `<iframe>`**:
+  - Se o administrador colar o código HTML completo fornecido pela plataforma (ex: `<iframe src="..."></iframe>`), o sistema higieniza e extrai apenas a URL limpa.
+- **Links Diretos (MP4 / HLS .m3u8)**:
+  - Renderizados com player nativo HTML5 otimizado para reprodução contínua.
+- **Botão de Origem no Player**:
+  - Permite ao espectador abrir a transmissão diretamente no reprodutor externo com um clique se desejar.
+- **Histórico Automático**:
+  - Conforme o usuário assiste, o player salva o progresso e o filme passa a constar na fileira **"Continuar Assistindo"** com barra vermelha.
 
 ---
 
