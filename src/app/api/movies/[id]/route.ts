@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { initDb } from "@/lib/init-db";
 import { getSessionUser } from "@/lib/auth";
-import { processVideoUrl } from "@/lib/video-helper";
+import { processVideoUrl, resolveVideoUrlAsync } from "@/lib/video-helper";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +43,25 @@ export async function GET(
       args: [movieId],
     });
 
-    const movie = movieResult.rows[0];
+    const movie: any = { ...movieResult.rows[0] };
+
+    // Se o vídeo for do TokyVideo e ainda tiver um slug não-numérico, resolve dinamicamente
+    if (
+      movie.video_url &&
+      movie.video_url.includes("tokyvideo.com") &&
+      !/tokyvideo\.com\/(?:[a-zA-Z]{2}\/)?embed\/\d+/i.test(movie.video_url)
+    ) {
+      const resolved = await resolveVideoUrlAsync(movie.video_url);
+      if (resolved.src && resolved.src !== movie.video_url) {
+        movie.video_url = resolved.src;
+        movie.video_type = "tokyvideo";
+        // Auto-heal: atualiza de forma permanente no banco de dados para os próximos acessos
+        db.execute({
+          sql: `UPDATE movies SET video_url = ?, video_type = 'tokyvideo' WHERE id = ?`,
+          args: [resolved.src, movieId],
+        }).catch(() => {});
+      }
+    }
 
     return NextResponse.json({
       movie: {
@@ -88,7 +106,7 @@ export async function PUT(
       is_featured,
     } = body;
 
-    const processed = video_url ? processVideoUrl(video_url) : null;
+    const processed = video_url ? await resolveVideoUrlAsync(video_url) : null;
 
     // Buscar filme existente primeiro
     const existing = await db.execute({

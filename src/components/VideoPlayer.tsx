@@ -25,6 +25,26 @@ export default function VideoPlayer({
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const processed = processVideoUrl(rawVideoUrl);
+  const [activeSrc, setActiveSrc] = useState(processed.src);
+
+  // Fallback dinâmico: se for TokyVideo com slug não-numérico, resolve via /api/resolve-video
+  useEffect(() => {
+    setActiveSrc(processed.src);
+
+    if (
+      processed.type === "tokyvideo" &&
+      !/tokyvideo\.com\/(?:[a-zA-Z]{2}\/)?embed\/\d+/i.test(processed.src)
+    ) {
+      fetch(`/api/resolve-video?url=${encodeURIComponent(rawVideoUrl)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.resolved && data.resolved !== processed.src) {
+            setActiveSrc(data.resolved);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [rawVideoUrl, processed.src, processed.type]);
 
   // Enviar heartbeat de progresso a cada 10s se for HTML5 video
   useEffect(() => {
@@ -114,9 +134,9 @@ export default function VideoPlayer({
         </div>
 
         <div className="flex items-center gap-2">
-          {processed.src && (
+          {activeSrc && (
             <a
-              href={processed.src}
+              href={activeSrc}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 text-white hover:text-brand-gold bg-black/60 hover:bg-black/90 rounded-xl backdrop-blur-md border border-white/10 transition-colors"
@@ -141,7 +161,7 @@ export default function VideoPlayer({
         {processed.type === "direct" ? (
           <video
             ref={videoRef}
-            src={processed.src}
+            src={activeSrc}
             controls
             autoPlay
             playsInline
@@ -149,8 +169,8 @@ export default function VideoPlayer({
           />
         ) : (
           <iframe
-            key={processed.src}
-            src={processed.src}
+            key={activeSrc}
+            src={activeSrc}
             title={movieTitle}
             className="w-full h-full border-0 bg-black"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen; screen-wake-lock"

@@ -41,6 +41,27 @@ export default function AdminPage() {
   const [durationMinutes, setDurationMinutes] = useState(110);
   const [isFeatured, setIsFeatured] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["anos-80"]);
+  const [resolvingVideo, setResolvingVideo] = useState(false);
+
+  const handleVideoBlur = async () => {
+    if (
+      videoUrl.includes("tokyvideo.com") &&
+      !/tokyvideo\.com\/(?:[a-zA-Z]{2}\/)?embed\/\d+/i.test(videoUrl)
+    ) {
+      try {
+        setResolvingVideo(true);
+        const res = await fetch(`/api/resolve-video?url=${encodeURIComponent(videoUrl)}`);
+        const data = await res.json();
+        if (data?.resolved && data.resolved !== videoUrl) {
+          setVideoUrl(data.resolved);
+        }
+      } catch (err) {
+        console.error("Erro ao resolver URL do Tokyvideo:", err);
+      } finally {
+        setResolvingVideo(false);
+      }
+    }
+  };
 
   // Verificar se o usuário atual é admin
   useEffect(() => {
@@ -369,6 +390,7 @@ export default function AdminPage() {
                 required
                 placeholder="Cole o link do TokyVideo, Dailymotion, Google Drive, YouTube ou <iframe>..."
                 value={videoUrl}
+                onBlur={handleVideoBlur}
                 onChange={(e) => {
                   let val = e.target.value;
                   const iframeMatch = val.match(/src=["']([^"']+)["']/i);
@@ -379,6 +401,12 @@ export default function AdminPage() {
                 }}
                 className="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold"
               />
+              {resolvingVideo && (
+                <p className="text-[11px] text-brand-gold animate-pulse mt-1 font-semibold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-brand-gold animate-ping inline-block" />
+                  Identificando ID oficial do Tokyvideo para garantir reprodução perfeita...
+                </p>
+              )}
               <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
                 💡 <strong className="text-gray-300">Suporte completo:</strong> aceita links do <span className="text-brand-gold font-semibold">TokyVideo</span> (incluindo tokyvideo.com/br/video/...), <span className="text-blue-400 font-semibold">Dailymotion</span> (dailymotion.com ou dai.ly), <span className="text-emerald-400 font-semibold">Google Drive</span>, YouTube, Vimeo, Ok.ru, MP4 direto ou código <code className="text-white">&lt;iframe&gt;</code> completo.
               </p>

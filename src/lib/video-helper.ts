@@ -28,21 +28,30 @@ export function processVideoUrl(rawUrl: string): ProcessedVideo {
 
   // 1. TokyVideo (tokyvideo.com, tokyvideo.com/br, /es, /fr, etc.)
   if (trimmed.includes('tokyvideo.com')) {
-    // Caso já seja uma URL de embed
-    const embedMatch = trimmed.match(/tokyvideo\.com\/(?:[a-zA-Z]{2}\/)?embed\/([a-zA-Z0-9_-]+)/i);
-    if (embedMatch && embedMatch[1]) {
+    // Caso já seja uma URL de embed com ID numérico (ex: /br/embed/717987 ou /embed/717987)
+    const numericEmbed = trimmed.match(/tokyvideo\.com\/(?:[a-zA-Z]{2}\/)?embed\/(\d+)/i);
+    if (numericEmbed && numericEmbed[1]) {
       return {
         type: 'tokyvideo',
-        src: `https://www.tokyvideo.com/embed/${embedMatch[1]}`,
+        src: `https://www.tokyvideo.com/br/embed/${numericEmbed[1]}`,
       };
     }
 
-    // Caso seja o link normal de visualização (/video/... ou /br/video/...)
+    // Caso seja uma URL de embed com slug
+    const embedSlugMatch = trimmed.match(/tokyvideo\.com\/(?:[a-zA-Z]{2}\/)?embed\/([a-zA-Z0-9_-]+)/i);
+    if (embedSlugMatch && embedSlugMatch[1]) {
+      return {
+        type: 'tokyvideo',
+        src: `https://www.tokyvideo.com/br/embed/${embedSlugMatch[1]}`,
+      };
+    }
+
+    // Caso seja o link normal de visualização (/video/slug ou /br/video/slug)
     const videoMatch = trimmed.match(/tokyvideo\.com\/(?:[a-zA-Z]{2}\/)?video\/([a-zA-Z0-9_-]+)/i);
     if (videoMatch && videoMatch[1]) {
       return {
         type: 'tokyvideo',
-        src: `https://www.tokyvideo.com/embed/${videoMatch[1]}`,
+        src: `https://www.tokyvideo.com/br/embed/${videoMatch[1]}`,
       };
     }
   }
@@ -144,4 +153,49 @@ export function processVideoUrl(rawUrl: string): ProcessedVideo {
     type: 'embed',
     src: trimmed,
   };
+}
+
+/**
+ * Resolução assíncrona avançada para plataformas como TokyVideo que utilizam slugs na URL pública
+ * mas requerem o ID numérico específico no endpoint de embed (/br/embed/ID).
+ */
+export async function resolveVideoUrlAsync(rawUrl: string): Promise<ProcessedVideo> {
+  const initial = processVideoUrl(rawUrl);
+
+  // Se for TokyVideo e ainda contiver um slug alfanumérico em vez de apenas dígitos
+  if (initial.type === 'tokyvideo') {
+    const slugMatch = initial.src.match(/tokyvideo\.com\/(?:[a-zA-Z]{2}\/)?embed\/([a-zA-Z0-9_-]+)/i);
+    if (slugMatch && slugMatch[1] && !/^\d+$/.test(slugMatch[1])) {
+      const slug = slugMatch[1];
+      const watchUrl = `https://www.tokyvideo.com/br/video/${slug}`;
+      try {
+        const res = await fetch(watchUrl, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+          },
+        });
+
+        if (res.ok) {
+          const html = await res.text();
+          // Procura o ID numérico no código de embed da página do TokyVideo
+          const matchEmbed = 
+            html.match(/tokyvideo\.com\/(?:[a-zA-Z]{2}\/)?embed\/(\d+)/i) ||
+            html.match(/data-(?:stats-)?video-id=['"](\d+)['"]/i) ||
+            html.match(/tokyvideo\.com\/videos\/\d+\/(\d+)\//i);
+
+          if (matchEmbed && matchEmbed[1]) {
+            return {
+              type: 'tokyvideo',
+              src: `https://www.tokyvideo.com/br/embed/${matchEmbed[1]}`,
+            };
+          }
+        }
+      } catch (err) {
+        console.error("Falha ao resolver Tokyvideo ID:", err);
+      }
+    }
+  }
+
+  return initial;
 }

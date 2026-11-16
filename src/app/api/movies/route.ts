@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { initDb } from "@/lib/init-db";
 import { getSessionUser } from "@/lib/auth";
-import { processVideoUrl } from "@/lib/video-helper";
+import { processVideoUrl, resolveVideoUrlAsync } from "@/lib/video-helper";
 
 export const dynamic = "force-dynamic";
 
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
     }
 
     const movieId = `mov_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const processed = processVideoUrl(video_url);
+    const processed = await resolveVideoUrlAsync(video_url);
     const finalVideoUrl = processed.src || video_url.trim();
 
     await db.execute({
