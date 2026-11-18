@@ -13,11 +13,12 @@ export interface ProcessedVideo {
   src: string;
 }
 
-export function processVideoUrl(rawUrl: string): ProcessedVideo {
+export function processVideoUrl(rawUrl: string, startSeconds = 0): ProcessedVideo {
   if (!rawUrl) {
     return { type: 'embed', src: '' };
   }
 
+  const safeStart = Math.max(0, Math.floor(startSeconds || 0));
   let trimmed = rawUrl.trim();
 
   // Se o usuário colou o código <iframe> completo, extrai a URL do atributo src
@@ -58,12 +59,13 @@ export function processVideoUrl(rawUrl: string): ProcessedVideo {
 
   // 2. Dailymotion (dailymotion.com, dai.ly, geo.dailymotion.com)
   if (trimmed.includes('dailymotion.com') || trimmed.includes('dai.ly')) {
+    const startParam = safeStart > 5 ? `&startTime=${safeStart}` : '';
     // Link curto dai.ly/{id}
     const dailyShort = trimmed.match(/dai\.ly\/([a-zA-Z0-9]+)/i);
     if (dailyShort && dailyShort[1]) {
       return {
         type: 'dailymotion',
-        src: `https://geo.dailymotion.com/player.html?video=${dailyShort[1]}&autoplay=1`,
+        src: `https://geo.dailymotion.com/player.html?video=${dailyShort[1]}&autoplay=1${startParam}`,
       };
     }
 
@@ -72,7 +74,7 @@ export function processVideoUrl(rawUrl: string): ProcessedVideo {
     if (geoMatch && geoMatch[1]) {
       return {
         type: 'dailymotion',
-        src: `https://geo.dailymotion.com/player.html?video=${geoMatch[1]}&autoplay=1`,
+        src: `https://geo.dailymotion.com/player.html?video=${geoMatch[1]}&autoplay=1${startParam}`,
       };
     }
 
@@ -81,7 +83,7 @@ export function processVideoUrl(rawUrl: string): ProcessedVideo {
     if (dmMatch && dmMatch[1]) {
       return {
         type: 'dailymotion',
-        src: `https://geo.dailymotion.com/player.html?video=${dmMatch[1]}&autoplay=1`,
+        src: `https://geo.dailymotion.com/player.html?video=${dmMatch[1]}&autoplay=1${startParam}`,
       };
     }
   }
@@ -102,9 +104,10 @@ export function processVideoUrl(rawUrl: string): ProcessedVideo {
   // Patterns: youtube.com/watch?v={id}, youtu.be/{id}, youtube.com/embed/{id}, youtube.com/shorts/{id}
   const ytMatch = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
   if (ytMatch && ytMatch[1]) {
+    const startParam = safeStart > 5 ? `&start=${safeStart}` : '';
     return {
       type: 'youtube',
-      src: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0&modestbranding=1`,
+      src: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0&modestbranding=1${startParam}`,
     };
   }
 
@@ -112,9 +115,10 @@ export function processVideoUrl(rawUrl: string): ProcessedVideo {
   const vimeoMatch = trimmed.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)/i);
   if (vimeoMatch && (vimeoMatch[3] || vimeoMatch[1])) {
     const vimeoId = vimeoMatch[3] || vimeoMatch[1];
+    const hashParam = safeStart > 5 ? `#t=${safeStart}s` : '';
     return {
       type: 'vimeo',
-      src: `https://player.vimeo.com/video/${vimeoId}?autoplay=1`,
+      src: `https://player.vimeo.com/video/${vimeoId}?autoplay=1${hashParam}`,
     };
   }
 

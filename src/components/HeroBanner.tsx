@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play, Plus, Check, Info, Sparkles } from "lucide-react";
 import { Movie } from "@/lib/types";
+import LikeButton from "@/components/LikeButton";
+import ShareButton from "@/components/ShareButton";
 
 interface HeroBannerProps {
   movie: Movie | null;
@@ -122,6 +124,19 @@ export default function HeroBanner({ movie, onOpenModal }: HeroBannerProps) {
               </>
             )}
           </button>
+
+          <LikeButton
+            movieId={movie.id}
+            initialCount={movie.likes_count || 0}
+            variant="hero"
+          />
+
+          <ShareButton
+            movieId={movie.id}
+            movieTitle={movie.title}
+            synopsis={movie.synopsis}
+            variant="hero"
+          />
 
           {onOpenModal && (
             <button

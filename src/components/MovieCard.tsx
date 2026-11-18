@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Plus, Check, Info } from "lucide-react";
+import { Play, Plus, Check, Info, Heart } from "lucide-react";
 import { Movie } from "@/lib/types";
 
 interface MovieCardProps {
@@ -92,7 +92,7 @@ export default function MovieCard({
               className="flex-1 flex items-center justify-center gap-1.5 bg-brand-gold hover:bg-brand-goldHover text-brand-dark py-1.5 px-2 rounded-lg font-bold text-xs transition-colors shadow-glowGold"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Assistir</span>
+              <span>{progressPercent > 0 ? "Continuar" : "Assistir"}</span>
             </Link>
 
             <button
@@ -136,9 +136,17 @@ export default function MovieCard({
         <p className="text-xs font-semibold text-gray-200 truncate group-hover:text-brand-gold transition-colors">
           {movie.title}
         </p>
-        <p className="text-[10px] text-gray-400">
-          {movie.release_year} • {movie.genre}
-        </p>
+        <div className="flex items-center justify-between text-[10px] text-gray-400">
+          <span>
+            {movie.release_year} • {movie.genre}
+          </span>
+          {(movie.likes_count || 0) > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-brand-red font-bold">
+              <Heart className="w-2.5 h-2.5 fill-current" />
+              {movie.likes_count}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

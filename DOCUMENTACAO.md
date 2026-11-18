@@ -1,6 +1,14 @@
-# 🎬 Plataforma Top Filmes - Documentação Técnica e Arquitetura
+# 🎬 Plataforma Top Filmes (v2.0) - Documentação Técnica e Arquitetura
 
+> **Versão Atual: `2.0.0`** (Tag Git: `v2.0.0` | Android `versionCode 2`, `versionName "2.0"`)
 > Plataforma completa de streaming inspirada na experiência da Netflix, voltada para computadores e celulares Android (preparada para publicação na **Google Play Store**), utilizando **hospedagem gratuita na Vercel** e **banco de dados gratuito no Turso (libSQL)**.
+
+### ✨ Novidades da Versão 2.0:
+- **Compartilhamento Social**: Botão de compartilhar filmes no Player, Modal e Banner (Web Share API nativa no celular + menu com WhatsApp, Telegram, Facebook, X/Twitter e Copiar Link com contagem no Analytics).
+- **Continuar de Onde Parou**: Salva automaticamente o minuto/segundo assistido (no Turso DB e `localStorage`) e retoma exatamente do ponto onde parou (suporte nativo a HTML5 MP4, YouTube `&start=`, Dailymotion `&startTime=`, Vimeo `#t=` e aviso visual + botão "Do Início" para demais players).
+- **Painel de Análise & Tráfego Completo para o ADM**: Nova aba `Analytics & Tráfego` em `/admin` com KPIs em tempo real, gráfico diário dos últimos 14 dias, Top 10 mais assistidos, Top 5 mais curtidos, desempenho por gênero e log de atividade recente.
+- **Hashtags & SEO Avançado para o Google**: Campo dedicado de hashtags no cadastro/edição de filmes (com gerador automático), tags clicáveis na interface, `generateMetadata` dinâmico com OpenGraph/Twitter Cards, Schema.org JSON-LD (`Movie`), `/sitemap.xml` dinâmico e `/robots.txt`.
+- **Curtidas nos Filmes**: Sistema completo de curtidas (`movie_likes`) disponível para usuários logados e visitantes com contador em tempo real no Player, Modal, Banner e Cards.
 
 ---
 

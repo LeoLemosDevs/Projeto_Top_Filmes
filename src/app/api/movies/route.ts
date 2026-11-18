@@ -78,9 +78,13 @@ export async function GET(req: Request) {
     }
 
     if (search) {
-      where.push(`(m.title LIKE ? OR m.synopsis LIKE ?)`);
-      args.push(`%${search}%`);
-      args.push(`%${search}%`);
+      const cleanSearch = search.trim();
+      const searchNoHash = cleanSearch.startsWith("#") ? cleanSearch.slice(1) : cleanSearch;
+      where.push(`(m.title LIKE ? OR m.synopsis LIKE ? OR m.hashtags LIKE ? OR m.genre LIKE ?)`);
+      args.push(`%${cleanSearch}%`);
+      args.push(`%${cleanSearch}%`);
+      args.push(`%${searchNoHash}%`);
+      args.push(`%${searchNoHash}%`);
     }
 
     if (featured === "1") {
@@ -133,6 +137,7 @@ export async function POST(req: Request) {
       categories, // array de slugs ou ids de categorias
       duration_minutes = 110,
       is_featured = 0,
+      hashtags = "",
     } = body;
 
     if (!title || !release_year || !synopsis || !genre || !cover_image_url || !video_url) {
@@ -145,14 +150,15 @@ export async function POST(req: Request) {
     const movieId = `mov_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const processed = await resolveVideoUrlAsync(video_url);
     const finalVideoUrl = processed.src || video_url.trim();
+    const cleanHashtags = typeof hashtags === "string" ? hashtags.trim() : "";
 
     await db.execute({
       sql: `
         INSERT INTO movies (
           id, title, release_year, synopsis, genre, 
           cover_image_url, video_url, video_type, 
-          duration_minutes, is_featured
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          duration_minutes, is_featured, hashtags
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       args: [
         movieId,
@@ -165,6 +171,7 @@ export async function POST(req: Request) {
         processed.type,
         parseInt(duration_minutes, 10) || 100,
         is_featured ? 1 : 0,
+        cleanHashtags,
       ],
     });
 

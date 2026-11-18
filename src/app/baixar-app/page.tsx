@@ -61,7 +61,7 @@ export default function BaixarAppPage() {
         {/* HERO SECTION */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-xs font-bold uppercase tracking-widest">
-            <Sparkles className="w-3.5 h-3.5" /> Versão Oficial 1.0 • Android & TV
+            <Sparkles className="w-3.5 h-3.5" /> Versão Oficial 2.0 • Android & TV
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
@@ -146,12 +146,12 @@ export default function BaixarAppPage() {
                   Baixar Pacote APK (Android)
                 </h3>
                 <p className="text-xs text-gray-300 mt-1 leading-relaxed">
-                  Baixe o instalador `.apk` da versão 1.0 para instalar manualmente em aparelhos Android, Smart TV Android ou TV Box via pendrive.
+                  Baixe o instalador `.apk` da versão 2.0 para instalar manualmente em aparelhos Android, Smart TV Android ou TV Box via pendrive.
                 </p>
               </div>
 
               <div className="bg-brand-surface/60 rounded-xl p-3 border border-brand-surfaceBorder text-[11px] text-gray-400 space-y-1 font-mono">
-                <div>• Versão: <span className="text-white">1.0.0</span></div>
+                <div>• Versão: <span className="text-white">2.0.0</span></div>
                 <div>• Pacote: <span className="text-white">com.topfilmes.app</span></div>
                 <div>• Sistema Mínimo: <span className="text-white">Android 7.0 (Nougat) ou superior</span></div>
               </div>
@@ -171,11 +171,11 @@ export default function BaixarAppPage() {
             <div className="pt-6 space-y-2">
               <a
                 href="/TopFilmes.apk"
-                download="TopFilmes_v1.0.apk"
+                download="TopFilmes_v2.0.apk"
                 className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-extrabold text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Download className="w-5 h-5" />
-                <span>Baixar APK Direto (v1.0)</span>
+                <span>Baixar APK Direto (v2.0)</span>
               </a>
 
               <a
@@ -204,7 +204,7 @@ export default function BaixarAppPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs uppercase font-bold text-brand-gold tracking-wider">Google Play Console</span>
-                <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold">Versão 1.0</span>
+                <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold">Versão 2.0</span>
               </div>
               <h4 className="text-base font-bold text-white mt-0.5">Top Filmes na Google Play Store</h4>
               <p className="text-xs text-gray-400 mt-1">

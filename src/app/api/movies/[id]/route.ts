@@ -13,6 +13,8 @@ export async function GET(
   try {
     await initDb();
     const movieId = params.id;
+    const { searchParams } = new URL(req.url);
+    const shouldTrack = searchParams.get("track") !== "0";
 
     const movieResult = await db.execute({
       sql: `SELECT * FROM movies WHERE id = ?`,
@@ -26,11 +28,20 @@ export async function GET(
       );
     }
 
-    // Incrementar contagem de visualizações
-    await db.execute({
-      sql: `UPDATE movies SET views_count = views_count + 1 WHERE id = ?`,
-      args: [movieId],
-    });
+    // Incrementar contagem de visualizações e registrar no analytics
+    if (shouldTrack) {
+      await db.execute({
+        sql: `UPDATE movies SET views_count = COALESCE(views_count, 0) + 1 WHERE id = ?`,
+        args: [movieId],
+      });
+
+      const evtId = `mv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const ua = (req.headers.get("user-agent") || "").slice(0, 180);
+      db.execute({
+        sql: `INSERT INTO analytics_events (id, event_type, path, movie_id, user_agent) VALUES (?, 'movie_view', ?, ?, ?)`,
+        args: [evtId, `/assistir/${movieId}`, movieId, ua],
+      }).catch(() => {});
+    }
 
     // Buscar categorias do filme
     const categoriesResult = await db.execute({
@@ -104,6 +115,7 @@ export async function PUT(
       categories,
       duration_minutes,
       is_featured,
+      hashtags,
     } = body;
 
     const processed = video_url ? await resolveVideoUrlAsync(video_url) : null;
@@ -132,6 +144,7 @@ export async function PUT(
     const newVideoType = processed ? processed.type : current.video_type;
     const newDuration = duration_minutes !== undefined && duration_minutes !== null ? parseInt(String(duration_minutes), 10) : current.duration_minutes;
     const newFeatured = is_featured !== undefined && is_featured !== null ? (is_featured ? 1 : 0) : current.is_featured;
+    const newHashtags = hashtags !== undefined && hashtags !== null ? String(hashtags).trim() : (current.hashtags || "");
 
     await db.execute({
       sql: `
@@ -145,6 +158,7 @@ export async function PUT(
           video_type = ?,
           duration_minutes = ?,
           is_featured = ?,
+          hashtags = ?,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `,
@@ -158,6 +172,7 @@ export async function PUT(
         newVideoType,
         newDuration,
         newFeatured,
+        newHashtags,
         movieId,
       ],
     });

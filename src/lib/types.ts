@@ -19,6 +19,9 @@ export interface Movie {
   duration_minutes?: number;
   is_featured?: number | boolean;
   views_count?: number;
+  likes_count?: number;
+  shares_count?: number;
+  hashtags?: string;
   created_at?: string;
   updated_at?: string;
   categories?: string[]; // IDs or names of assigned categories

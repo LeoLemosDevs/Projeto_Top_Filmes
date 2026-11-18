@@ -52,10 +52,24 @@ export async function initDb() {
       duration_minutes INTEGER DEFAULT 100,
       is_featured INTEGER DEFAULT 0,
       views_count INTEGER DEFAULT 0,
+      likes_count INTEGER DEFAULT 0,
+      shares_count INTEGER DEFAULT 0,
+      hashtags TEXT DEFAULT '',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Migrações dinâmicas v2.0 para tabela movies
+  try {
+    await db.execute(`ALTER TABLE movies ADD COLUMN likes_count INTEGER DEFAULT 0;`);
+  } catch {}
+  try {
+    await db.execute(`ALTER TABLE movies ADD COLUMN shares_count INTEGER DEFAULT 0;`);
+  } catch {}
+  try {
+    await db.execute(`ALTER TABLE movies ADD COLUMN hashtags TEXT DEFAULT '';`);
+  } catch {}
 
   // 3. Tabela de Categorias
   await db.execute(`
@@ -106,6 +120,35 @@ export async function initDb() {
       FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE
     );
   `);
+
+  // 7. Tabela de Curtidas (v2.0)
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS movie_likes (
+      id TEXT PRIMARY KEY,
+      movie_id TEXT NOT NULL,
+      actor_key TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(movie_id, actor_key),
+      FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE
+    );
+  `);
+
+  // 8. Tabela de Analytics & Tráfego (v2.0)
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS analytics_events (
+      id TEXT PRIMARY KEY,
+      event_type TEXT NOT NULL,
+      path TEXT,
+      movie_id TEXT,
+      actor_key TEXT,
+      user_agent TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  try {
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_analytics_created ON analytics_events(created_at);`);
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_analytics_type ON analytics_events(event_type);`);
+  } catch {}
 
   // Inserir categorias oficiais se não existirem
   for (let i = 0; i < OFFICIAL_CATEGORIES.length; i++) {

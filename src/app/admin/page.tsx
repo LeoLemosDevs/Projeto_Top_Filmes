@@ -16,12 +16,18 @@ import {
   AlertCircle,
   Pencil,
   Save,
-  X
+  X,
+  BarChart3,
+  Hash,
+  Heart,
+  Share2
 } from "lucide-react";
 import { OFFICIAL_CATEGORIES, OFFICIAL_GENRES, Movie } from "@/lib/types";
+import AdminAnalytics from "@/components/AdminAnalytics";
 
 export default function AdminPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"movies" | "analytics">("movies");
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,10 +44,35 @@ export default function AdminPage() {
   const [genre, setGenre] = useState<string>(OFFICIAL_GENRES[0]);
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [hashtags, setHashtags] = useState("");
   const [durationMinutes, setDurationMinutes] = useState(110);
   const [isFeatured, setIsFeatured] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["anos-80"]);
   const [resolvingVideo, setResolvingVideo] = useState(false);
+
+  const generateSuggestedHashtags = () => {
+    const normalize = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "");
+
+    const parts: string[] = [];
+    if (title.trim()) {
+      const cleanTitle = normalize(title);
+      if (cleanTitle) parts.push(`#${cleanTitle}`);
+    }
+    if (genre) {
+      const cleanGenre = normalize(genre);
+      if (cleanGenre) parts.push(`#${cleanGenre}`);
+    }
+    if (releaseYear) {
+      parts.push(`#filmes${releaseYear}`);
+    }
+    parts.push("#topfilmes", "#filmecompleto", "#dublado", "#classicosdocinema");
+    setHashtags(Array.from(new Set(parts)).join(" "));
+  };
 
   const handleVideoBlur = async () => {
     if (
@@ -99,6 +130,7 @@ export default function AdminPage() {
   };
 
   const handleStartEdit = async (m: Movie) => {
+    setActiveTab("movies");
     setEditingMovie(m);
     setTitle(m.title);
     setReleaseYear(m.release_year);
@@ -106,6 +138,7 @@ export default function AdminPage() {
     setGenre(m.genre);
     setCoverImageUrl(m.cover_image_url);
     setVideoUrl(m.video_url);
+    setHashtags(m.hashtags || "");
     setDurationMinutes(m.duration_minutes || 110);
     setIsFeatured(Boolean(m.is_featured));
     setFeedback(null);
@@ -113,13 +146,16 @@ export default function AdminPage() {
     // Rolar até o topo do formulário
     window.scrollTo({ top: 100, behavior: "smooth" });
 
-    // Buscar categorias atribuídas ao filme
+    // Buscar categorias atribuídas ao filme (track=0 para não contabilizar view do admin)
     try {
       setLoadingMovieEdit(true);
-      const res = await fetch(`/api/movies/${m.id}`);
+      const res = await fetch(`/api/movies/${m.id}?track=0`);
       const data = await res.json();
       if (data?.movie?.categories) {
         setSelectedCategories(data.movie.categories.map((c: any) => c.slug));
+      }
+      if (typeof data?.movie?.hashtags === "string") {
+        setHashtags(data.movie.hashtags);
       }
     } catch (e) {
       console.error("Erro ao carregar categorias do filme:", e);
@@ -136,6 +172,7 @@ export default function AdminPage() {
     setGenre(OFFICIAL_GENRES[0]);
     setCoverImageUrl("");
     setVideoUrl("");
+    setHashtags("");
     setDurationMinutes(110);
     setIsFeatured(false);
     setSelectedCategories(["anos-80"]);
@@ -161,6 +198,7 @@ export default function AdminPage() {
           genre,
           cover_image_url: coverImageUrl,
           video_url: videoUrl,
+          hashtags,
           categories: selectedCategories,
           duration_minutes: durationMinutes,
           is_featured: isFeatured,
@@ -205,17 +243,22 @@ export default function AdminPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
       {/* HEADER DO PAINEL */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-brand-surfaceBorder">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-brand-surfaceBorder">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-2xl bg-brand-blue/20 border border-brand-blue">
             <ShieldAlert className="w-6 h-6 text-brand-gold" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wide">
-              Painel do Administrador
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wide">
+                Painel do Administrador
+              </h1>
+              <span className="px-2 py-0.5 rounded-md bg-brand-gold/20 border border-brand-gold/40 text-brand-gold text-[10px] font-black uppercase">
+                v2.0
+              </span>
+            </div>
             <p className="text-xs text-gray-400">
-              Gerencie e publique filmes com suporte a Google Drive, YouTube e players externos.
+              Gerencie filmes, hashtags SEO para o Google e acompanhe o tráfego completo em tempo real.
             </p>
           </div>
         </div>
@@ -233,8 +276,37 @@ export default function AdminPage() {
         </div>
       </div>
 
+      {/* ABAS DE NAVEGAÇÃO DO ADM */}
+      <div className="flex flex-wrap items-center gap-2 mb-8">
+        <button
+          type="button"
+          onClick={() => setActiveTab("movies")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold uppercase tracking-wider transition-all border ${
+            activeTab === "movies"
+              ? "bg-brand-gold text-brand-dark border-brand-gold shadow-glowGold"
+              : "bg-brand-surface text-gray-300 border-brand-surfaceBorder hover:text-white hover:border-gray-500"
+          }`}
+        >
+          <Film className="w-4 h-4" />
+          <span>Publicar & Gerenciar Filmes</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("analytics")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold uppercase tracking-wider transition-all border ${
+            activeTab === "analytics"
+              ? "bg-brand-blue text-white border-blue-400 shadow-glowBlue"
+              : "bg-brand-surface text-gray-300 border-brand-surfaceBorder hover:text-white hover:border-gray-500"
+          }`}
+        >
+          <BarChart3 className="w-4 h-4 text-brand-gold" />
+          <span>Analytics & Tráfego Completo</span>
+        </button>
+      </div>
+
       {/* FEEDBACK ALERT */}
-      {feedback && (
+      {feedback && activeTab === "movies" && (
         <div
           className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-xs font-bold ${
             feedback.type === "success"
@@ -246,6 +318,10 @@ export default function AdminPage() {
           <span>{feedback.message}</span>
         </div>
       )}
+
+      {activeTab === "analytics" ? (
+        <AdminAnalytics />
+      ) : (
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* FORMULÁRIO DE PUBLICAÇÃO E EDIÇÃO */}
@@ -425,6 +501,33 @@ export default function AdminPage() {
               )}
             </div>
 
+            {/* HASHTAGS PARA SEO NO GOOGLE E BUSCA INTERNA */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Hash className="w-3.5 h-3.5 text-brand-gold" />
+                  <span>Hashtags (SEO Google & Busca)</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={generateSuggestedHashtags}
+                  className="text-[10px] px-2.5 py-1 rounded-lg bg-brand-blue/30 hover:bg-brand-blue text-blue-300 hover:text-white font-bold transition-colors border border-brand-blue/50"
+                >
+                  ✨ Gerar Hashtags SEO
+                </button>
+              </div>
+              <input
+                type="text"
+                placeholder="Ex: #classicos #anos80 #dublado #filmecompleto #acao #topfilmes"
+                value={hashtags}
+                onChange={(e) => setHashtags(e.target.value)}
+                className="w-full bg-brand-surfaceElevated border border-brand-surfaceBorder rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold"
+              />
+              <p className="text-[11px] text-gray-400 mt-1">
+                🔍 As hashtags são indexadas nos metadados e Schema.org da página do filme para aparecerem nas buscas do Google e facilitam a pesquisa interna.
+              </p>
+            </div>
+
             {/* SELEÇÃO DE CATEGORIAS / SESSÕES DA HOME */}
             <div>
               <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">
@@ -535,10 +638,21 @@ export default function AdminPage() {
                       <p className="text-[10px] text-gray-400">
                         {m.release_year} • {m.genre}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand-blue/30 text-blue-300 font-semibold">
-                          {m.views_count || 0} views
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand-blue/30 text-blue-300 font-semibold inline-flex items-center gap-0.5">
+                          <Eye className="w-2.5 h-2.5" /> {m.views_count || 0}
                         </span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand-red/20 text-red-300 font-semibold inline-flex items-center gap-0.5">
+                          <Heart className="w-2.5 h-2.5 fill-current" /> {m.likes_count || 0}
+                        </span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold inline-flex items-center gap-0.5">
+                          <Share2 className="w-2.5 h-2.5" /> {m.shares_count || 0}
+                        </span>
+                        {m.hashtags ? (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-semibold">
+                            #SEO
+                          </span>
+                        ) : null}
                         {m.is_featured ? (
                           <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand-gold/30 text-brand-gold font-bold">
                             Destaque
@@ -584,6 +698,7 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

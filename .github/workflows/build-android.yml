@@ -1,4 +1,4 @@
-name: Compilar APK e AAB Android (Top Filmes v1.0)
+name: Compilar APK e AAB Android (Top Filmes v2.0)
 
 on:
   push:
@@ -42,11 +42,11 @@ jobs:
       - name: Salvar APK Gerado (Artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: TopFilmes-v1.0-APK
+          name: TopFilmes-v2.0-APK
           path: android/app/build/outputs/apk/release/app-release.apk
 
       - name: Salvar AAB Gerado para Google Play Store (Artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: TopFilmes-v1.0-PlayStore-AAB
+          name: TopFilmes-v2.0-PlayStore-AAB
           path: android/app/build/outputs/bundle/release/app-release.aab
