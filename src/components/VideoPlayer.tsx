@@ -3,13 +3,25 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Maximize, RotateCcw, ExternalLink, Clock, Hash } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Maximize, 
+  RotateCcw, 
+  ExternalLink, 
+  Clock, 
+  Hash,
+  SkipBack,
+  SkipForward,
+  ListVideo,
+  X,
+  Play
+} from "lucide-react";
 import { processVideoUrl } from "@/lib/video-helper";
 import LikeButton from "@/components/LikeButton";
 import ShareButton from "@/components/ShareButton";
 
 interface VideoPlayerProps {
-  movieId: string;
+  movieId?: string;
   movieTitle: string;
   rawVideoUrl: string;
   synopsis?: string;
@@ -17,6 +29,21 @@ interface VideoPlayerProps {
   hashtags?: string;
   initialLikesCount?: number;
   initialProgressSeconds?: number;
+  // Propriedades para Séries e Animes
+  backUrl?: string;
+  seriesId?: string;
+  episodeId?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  prevEpisodeUrl?: string;
+  nextEpisodeUrl?: string;
+  allEpisodes?: Array<{
+    id: string;
+    episode_number: number;
+    title: string;
+    season_number?: number;
+    thumbnail_url?: string;
+  }>;
 }
 
 function formatTime(totalSeconds: number): string {
@@ -31,7 +58,7 @@ function formatTime(totalSeconds: number): string {
 }
 
 export default function VideoPlayer({
-  movieId,
+  movieId = "",
   movieTitle,
   rawVideoUrl,
   synopsis = "",
@@ -39,12 +66,22 @@ export default function VideoPlayer({
   hashtags = "",
   initialLikesCount = 0,
   initialProgressSeconds = 0,
+  backUrl,
+  seriesId,
+  episodeId,
+  seasonNumber,
+  episodeNumber,
+  prevEpisodeUrl,
+  nextEpisodeUrl,
+  allEpisodes = [],
 }: VideoPlayerProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const isSeries = Boolean(seriesId && episodeId);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [resumeSeconds, setResumeSeconds] = useState<number>(initialProgressSeconds);
   const [progressReady, setProgressReady] = useState<boolean>(false);
@@ -56,7 +93,9 @@ export default function VideoPlayer({
   const totalSecRef = useRef<number>((durationMinutes || 110) * 60);
   const appliedDirectSeekRef = useRef<boolean>(false);
 
-  const storageKey = `tf_progress_${movieId}`;
+  const storageKey = isSeries
+    ? `tf_progress_series_${seriesId}_${episodeId}`
+    : `tf_progress_${movieId}`;
 
   // 1. Carregar progresso salvo do banco (/api/history?movieId=) e do localStorage
   useEffect(() => {
@@ -76,19 +115,21 @@ export default function VideoPlayer({
 
       let serverSec = initialProgressSeconds || 0;
       let serverCompleted = false;
-      try {
-        const res = await fetch(`/api/history?movieId=${encodeURIComponent(movieId)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (typeof data.progressSeconds === "number") {
-            serverSec = data.progressSeconds;
+      if (!isSeries && movieId) {
+        try {
+          const res = await fetch(`/api/history?movieId=${encodeURIComponent(movieId)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (typeof data.progressSeconds === "number") {
+              serverSec = data.progressSeconds;
+            }
+            if (typeof data.durationSeconds === "number" && data.durationSeconds > 0) {
+              totalSecRef.current = data.durationSeconds;
+            }
+            serverCompleted = Boolean(data.completed);
           }
-          if (typeof data.durationSeconds === "number" && data.durationSeconds > 0) {
-            totalSecRef.current = data.durationSeconds;
-          }
-          serverCompleted = Boolean(data.completed);
-        }
-      } catch {}
+        } catch {}
+      }
 
       if (!active) return;
 
@@ -107,7 +148,7 @@ export default function VideoPlayer({
     return () => {
       active = false;
     };
-  }, [movieId, initialProgressSeconds, storageKey]);
+  }, [movieId, initialProgressSeconds, storageKey, isSeries]);
 
   // Esconder banner de "Continuar de onde parou" automaticamente após 8 segundos
   useEffect(() => {
@@ -158,6 +199,31 @@ export default function VideoPlayer({
           })
         );
       } catch {}
+
+      if (isSeries && seriesId && episodeId) {
+        const seriesPayload = JSON.stringify({
+          series_id: seriesId,
+          episode_id: episodeId,
+          progress_seconds: safeSec,
+          duration_seconds: safeTotal,
+          completed: completed ? 1 : 0,
+        });
+
+        if (useBeacon && typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+          const blob = new Blob([seriesPayload], { type: "application/json" });
+          navigator.sendBeacon("/api/series/history", blob);
+          return;
+        }
+
+        fetch("/api/series/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: seriesPayload,
+        }).catch(() => {});
+        return;
+      }
+
+      if (!movieId) return;
 
       const payload = JSON.stringify({
         movieId,
@@ -286,24 +352,71 @@ export default function VideoPlayer({
           controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-white hover:text-brand-gold bg-black/60 hover:bg-black/90 px-3 sm:px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 transition-all shadow-lg shrink-0"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="hidden sm:inline text-xs sm:text-sm font-bold uppercase tracking-wider">
-            Voltar
-          </span>
-        </button>
+        {/* CONTROLES DA ESQUERDA: VOLTAR & NAVEGAÇÃO DE EPISÓDIOS */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button
+            onClick={() => {
+              if (backUrl) router.push(backUrl);
+              else router.back();
+            }}
+            className="flex items-center gap-2 text-white hover:text-brand-gold bg-black/60 hover:bg-black/90 px-3 sm:px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 transition-all shadow-lg shrink-0"
+            title="Voltar"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="hidden sm:inline text-xs sm:text-sm font-bold uppercase tracking-wider">
+              Voltar
+            </span>
+          </button>
+
+          {/* BOTÃO EPISÓDIO ANTERIOR */}
+          {prevEpisodeUrl && (
+            <Link
+              href={prevEpisodeUrl}
+              className="p-2 text-white hover:text-brand-gold bg-black/60 hover:bg-black/90 rounded-xl backdrop-blur-md border border-white/10 transition-colors shrink-0"
+              title="Episódio Anterior"
+            >
+              <SkipBack className="w-4 h-4" />
+            </Link>
+          )}
+
+          {/* BOTÃO PRÓXIMO EPISÓDIO */}
+          {nextEpisodeUrl && (
+            <Link
+              href={nextEpisodeUrl}
+              className="p-2 text-white hover:text-brand-gold bg-black/60 hover:bg-black/90 rounded-xl backdrop-blur-md border border-white/10 transition-colors shrink-0"
+              title="Próximo Episódio"
+            >
+              <SkipForward className="w-4 h-4" />
+            </Link>
+          )}
+
+          {/* BOTÃO DRAWER DE EPISÓDIOS */}
+          {allEpisodes && allEpisodes.length > 0 && (
+            <button
+              onClick={() => setDrawerOpen(!drawerOpen)}
+              className="flex items-center gap-1.5 p-2 text-white hover:text-brand-gold bg-black/60 hover:bg-black/90 rounded-xl backdrop-blur-md border border-white/10 transition-colors shrink-0"
+              title="Ver Todos os Episódios"
+            >
+              <ListVideo className="w-4 h-4 text-brand-gold" />
+              <span className="hidden md:inline text-xs font-bold uppercase">Episódios</span>
+            </button>
+          )}
+        </div>
 
         <div className="text-center px-2 min-w-0 flex-1">
           <h1 className="text-white font-black text-xs sm:text-base md:text-lg tracking-wide uppercase truncate">
             {movieTitle}
           </h1>
           <div className="flex items-center justify-center gap-2 flex-wrap">
-            <span className="text-[10px] text-brand-gold font-semibold tracking-widest uppercase">
-              Top Filmes Cinema
-            </span>
+            {isSeries && seasonNumber && episodeNumber ? (
+              <span className="text-[11px] text-brand-gold font-extrabold tracking-wider uppercase bg-brand-gold/10 px-2 py-0.5 rounded border border-brand-gold/30">
+                T{seasonNumber} : Ep. {episodeNumber}
+              </span>
+            ) : (
+              <span className="text-[10px] text-brand-gold font-semibold tracking-widest uppercase">
+                Top Filmes Cinema
+              </span>
+            )}
             {parsedHashtags.slice(0, 3).map((tag) => (
               <Link
                 key={tag}
@@ -317,20 +430,24 @@ export default function VideoPlayer({
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* CURTIR */}
-          <LikeButton
-            movieId={movieId}
-            initialCount={initialLikesCount}
-            variant="player"
-          />
+          {/* CURTIR (SE FILME) */}
+          {movieId && (
+            <LikeButton
+              movieId={movieId}
+              initialCount={initialLikesCount}
+              variant="player"
+            />
+          )}
 
           {/* COMPARTILHAR */}
-          <ShareButton
-            movieId={movieId}
-            movieTitle={movieTitle}
-            synopsis={synopsis}
-            variant="player"
-          />
+          {movieId && (
+            <ShareButton
+              movieId={movieId}
+              movieTitle={movieTitle}
+              synopsis={synopsis}
+              variant="player"
+            />
+          )}
 
           {/* RECOMEÇAR DO INÍCIO */}
           {resumeSeconds > 5 && (
@@ -438,6 +555,62 @@ export default function VideoPlayer({
           />
         )}
       </div>
+
+      {/* DRAWER LATERAL DE EPISÓDIOS (PARA SÉRIES E ANIMES) */}
+      {drawerOpen && isSeries && (
+        <div className="absolute inset-y-0 right-0 w-80 max-w-[85vw] bg-brand-dark/95 backdrop-blur-xl border-l border-brand-surfaceBorder z-50 p-4 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-brand-surfaceBorder">
+            <div className="flex items-center gap-2">
+              <ListVideo className="w-4 h-4 text-brand-gold" />
+              <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                Episódios
+              </h3>
+            </div>
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-none">
+            {allEpisodes.map((ep) => {
+              const isSelected = ep.id === episodeId;
+              return (
+                <button
+                  key={ep.id}
+                  onClick={() => {
+                    setDrawerOpen(false);
+                    router.push(`/assistir-serie/${seriesId}/${ep.id}`);
+                  }}
+                  className={`w-full text-left p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                    isSelected
+                      ? "bg-brand-gold/15 border-brand-gold text-white"
+                      : "bg-brand-surfaceElevated/60 border-brand-surfaceBorder/80 text-gray-300 hover:bg-brand-surfaceElevated hover:border-brand-gold/50"
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-brand-gold block mb-0.5">
+                      {ep.season_number ? `T${ep.season_number} • ` : ""}Ep. {ep.episode_number}
+                    </span>
+                    <h4 className="text-xs font-bold truncate">
+                      {ep.title}
+                    </h4>
+                  </div>
+                  {isSelected ? (
+                    <span className="text-[10px] font-black uppercase text-brand-gold bg-brand-gold/20 px-2 py-0.5 rounded border border-brand-gold/40">
+                      Assistindo
+                    </span>
+                  ) : (
+                    <Play className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -20,14 +20,18 @@ import {
   BarChart3,
   Hash,
   Heart,
-  Share2
+  Share2,
+  Layers,
+  Tv
 } from "lucide-react";
 import { OFFICIAL_CATEGORIES, OFFICIAL_GENRES, Movie } from "@/lib/types";
 import AdminAnalytics from "@/components/AdminAnalytics";
+import AdminSagas from "@/components/AdminSagas";
+import AdminSeries from "@/components/AdminSeries";
 
 export default function AdminPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"movies" | "analytics">("movies");
+  const [activeTab, setActiveTab] = useState<"movies" | "sagas" | "series" | "analytics">("movies");
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -288,7 +292,33 @@ export default function AdminPage() {
           }`}
         >
           <Film className="w-4 h-4" />
-          <span>Publicar & Gerenciar Filmes</span>
+          <span>Filmes ({movies.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("sagas")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold uppercase tracking-wider transition-all border ${
+            activeTab === "sagas"
+              ? "bg-brand-gold text-brand-dark border-brand-gold shadow-glowGold"
+              : "bg-brand-surface text-gray-300 border-brand-surfaceBorder hover:text-white hover:border-gray-500"
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>Sagas & Coleções</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("series")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold uppercase tracking-wider transition-all border ${
+            activeTab === "series"
+              ? "bg-blue-600 text-white border-blue-400 shadow-glowBlue"
+              : "bg-brand-surface text-gray-300 border-brand-surfaceBorder hover:text-white hover:border-gray-500"
+          }`}
+        >
+          <Tv className="w-4 h-4" />
+          <span>Séries & Animes</span>
         </button>
 
         <button
@@ -296,12 +326,12 @@ export default function AdminPage() {
           onClick={() => setActiveTab("analytics")}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold uppercase tracking-wider transition-all border ${
             activeTab === "analytics"
-              ? "bg-brand-blue text-white border-blue-400 shadow-glowBlue"
+              ? "bg-emerald-600 text-white border-emerald-400 shadow-lg"
               : "bg-brand-surface text-gray-300 border-brand-surfaceBorder hover:text-white hover:border-gray-500"
           }`}
         >
           <BarChart3 className="w-4 h-4 text-brand-gold" />
-          <span>Analytics & Tráfego Completo</span>
+          <span>Analytics & Tráfego</span>
         </button>
       </div>
 
@@ -321,6 +351,10 @@ export default function AdminPage() {
 
       {activeTab === "analytics" ? (
         <AdminAnalytics />
+      ) : activeTab === "sagas" ? (
+        <AdminSagas movies={movies} />
+      ) : activeTab === "series" ? (
+        <AdminSeries />
       ) : (
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

@@ -2,12 +2,15 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import HeroBanner from "@/components/HeroBanner";
 import MovieRow from "@/components/MovieRow";
 import MovieModal from "@/components/MovieModal";
 import MovieCard from "@/components/MovieCard";
-import { Movie, Category, OFFICIAL_GENRES } from "@/lib/types";
-import { Film, Sparkles, Tv, Clock, Bookmark, Filter } from "lucide-react";
+import SeriesCard from "@/components/SeriesCard";
+import { Movie, Category, Collection, Series, OFFICIAL_GENRES } from "@/lib/types";
+import { Film, Sparkles, Tv, Clock, Bookmark, Filter, Layers, ArrowRight, Play } from "lucide-react";
 
 function HomeContent() {
   const router = useRouter();
@@ -20,6 +23,9 @@ function HomeContent() {
   const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]);
   const [historyList, setHistoryList] = useState<any[]>([]);
   const [favoritesList, setFavoritesList] = useState<any[]>([]);
+  const [sagasList, setSagasList] = useState<Collection[]>([]);
+  const [seriesList, setSeriesList] = useState<Series[]>([]);
+  const [animesList, setAnimesList] = useState<Series[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -65,6 +71,22 @@ function HomeContent() {
         fetch("/api/favorites")
           .then((r) => r.json())
           .then((d) => setFavoritesList(d.favorites || []))
+          .catch(() => {});
+
+        // Carregar Sagas, Séries e Animes
+        fetch("/api/collections")
+          .then((r) => r.json())
+          .then((d) => setSagasList(d.collections || []))
+          .catch(() => {});
+
+        fetch("/api/series?type=SERIES")
+          .then((r) => r.json())
+          .then((d) => setSeriesList(d.series || []))
+          .catch(() => {});
+
+        fetch("/api/series?type=ANIME")
+          .then((r) => r.json())
+          .then((d) => setAnimesList(d.series || []))
           .catch(() => {});
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
@@ -208,7 +230,123 @@ function HomeContent() {
               </section>
             )}
 
-            {/* FILEIRAS DAS 13 CATEGORIAS OFICIAIS */}
+            {/* SEÇÃO: SAGAS & COLEÇÕES */}
+            {sagasList.length > 0 && (
+              <section className="relative px-4 sm:px-6 lg:px-8 my-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-brand-gold" />
+                    <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-wide uppercase">
+                      <span className="text-brand-gold">|</span> Sagas & Coleções Imperdíveis
+                    </h2>
+                  </div>
+                  <Link
+                    href="/sagas"
+                    className="flex items-center gap-1 text-xs font-bold text-brand-gold hover:underline uppercase tracking-wider"
+                  >
+                    <span>Ver Todas</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+                <div
+                  className="flex items-center gap-4 overflow-x-auto scroll-smooth scrollbar-none py-2"
+                  style={{ scrollbarWidth: "none" }}
+                >
+                  {sagasList.map((saga) => (
+                    <Link
+                      key={saga.id}
+                      href={`/sagas/${saga.slug || saga.id}`}
+                      className="group relative w-64 sm:w-72 h-40 rounded-2xl overflow-hidden shrink-0 border border-brand-surfaceBorder hover:border-brand-gold/60 transition-all duration-300 hover:scale-105 shadow-xl bg-brand-surface"
+                    >
+                      <Image
+                        src={saga.backdrop_url || saga.cover_image_url || "/logo.png"}
+                        alt={saga.title}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/50 to-transparent" />
+                      <div className="absolute top-2.5 right-2.5">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-black/80 text-brand-gold border border-brand-gold/30 backdrop-blur-md">
+                          {saga.movies_count || 0} Filmes
+                        </span>
+                      </div>
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <h3 className="text-sm font-black text-white group-hover:text-brand-gold transition-colors uppercase tracking-wide truncate">
+                          {saga.title}
+                        </h3>
+                        <p className="text-[10px] text-gray-300 line-clamp-1 mt-0.5">
+                          {saga.synopsis || "Confira todos os filmes da saga"}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* SEÇÃO: SÉRIES EM DESTAQUE */}
+            {seriesList.length > 0 && (
+              <section className="relative px-4 sm:px-6 lg:px-8 my-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Tv className="w-5 h-5 text-blue-400" />
+                    <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-wide uppercase">
+                      <span className="text-blue-500">|</span> Séries em Destaque
+                    </h2>
+                  </div>
+                  <Link
+                    href="/series"
+                    className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:underline uppercase tracking-wider"
+                  >
+                    <span>Ver Todas</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+                <div
+                  className="flex items-center gap-4 overflow-x-auto scroll-smooth scrollbar-none py-2"
+                  style={{ scrollbarWidth: "none" }}
+                >
+                  {seriesList.map((serie) => (
+                    <div key={serie.id} className="w-40 sm:w-48 shrink-0">
+                      <SeriesCard series={serie} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* SEÇÃO: ANIMES EM ALTA */}
+            {animesList.length > 0 && (
+              <section className="relative px-4 sm:px-6 lg:px-8 my-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-purple-400" />
+                    <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-wide uppercase">
+                      <span className="text-purple-500">|</span> Animes em Alta
+                    </h2>
+                  </div>
+                  <Link
+                    href="/animes"
+                    className="flex items-center gap-1 text-xs font-bold text-purple-400 hover:underline uppercase tracking-wider"
+                  >
+                    <span>Ver Todos</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+                <div
+                  className="flex items-center gap-4 overflow-x-auto scroll-smooth scrollbar-none py-2"
+                  style={{ scrollbarWidth: "none" }}
+                >
+                  {animesList.map((anime) => (
+                    <div key={anime.id} className="w-40 sm:w-48 shrink-0">
+                      <SeriesCard series={anime} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* FILEIRAS DAS 17 CATEGORIAS OFICIAIS */}
             {categories.map((cat) => (
               <MovieRow
                 key={cat.id}

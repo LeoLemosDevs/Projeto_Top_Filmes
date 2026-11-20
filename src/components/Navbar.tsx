@@ -7,6 +7,9 @@ import { useRouter, usePathname } from "next/navigation";
 import { 
   Search, 
   Film, 
+  Tv,
+  Sparkles,
+  Layers,
   Bookmark, 
   History as HistoryIcon, 
   ShieldAlert, 
@@ -98,7 +101,7 @@ export default function Navbar() {
           </Link>
 
           {/* DESKTOP NAVIGATION LINKS */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
+          <nav className="hidden lg:flex items-center gap-5 text-sm font-medium">
             <Link
               href="/"
               className={`transition-colors hover:text-brand-gold ${
@@ -106,6 +109,36 @@ export default function Navbar() {
               }`}
             >
               Início
+            </Link>
+
+            <Link
+              href="/series"
+              className={`flex items-center gap-1.5 transition-colors hover:text-brand-gold ${
+                pathname.startsWith("/series") ? "text-blue-400 font-bold" : "text-gray-300"
+              }`}
+            >
+              <Tv className="w-4 h-4 text-blue-400" />
+              <span>Séries</span>
+            </Link>
+
+            <Link
+              href="/animes"
+              className={`flex items-center gap-1.5 transition-colors hover:text-brand-gold ${
+                pathname.startsWith("/animes") ? "text-purple-400 font-bold" : "text-gray-300"
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-purple-400" />
+              <span>Animes</span>
+            </Link>
+
+            <Link
+              href="/sagas"
+              className={`flex items-center gap-1.5 transition-colors hover:text-brand-gold ${
+                pathname.startsWith("/sagas") ? "text-brand-gold font-bold" : "text-gray-300"
+              }`}
+            >
+              <Layers className="w-4 h-4 text-brand-gold" />
+              <span>Sagas & Coleções</span>
             </Link>
 
             {/* Dropdown de Gêneros */}

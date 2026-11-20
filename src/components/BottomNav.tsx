@@ -6,6 +6,9 @@ import { usePathname } from "next/navigation";
 import { 
   Home, 
   Film, 
+  Tv,
+  Sparkles,
+  Layers,
   Bookmark, 
   History as HistoryIcon, 
   User, 
@@ -40,7 +43,7 @@ export default function BottomNav() {
       <nav className="flex items-center justify-around">
         <Link
           href="/"
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition-colors ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
             pathname === "/" ? "text-brand-gold font-bold" : "text-gray-400 hover:text-gray-200"
           }`}
         >
@@ -49,39 +52,49 @@ export default function BottomNav() {
         </Link>
 
         <Link
+          href="/series"
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
+            pathname.startsWith("/series") ? "text-blue-400 font-bold" : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <Tv className="w-5 h-5" />
+          <span className="text-[10px] tracking-tight">Séries</span>
+        </Link>
+
+        <Link
+          href="/animes"
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
+            pathname.startsWith("/animes") ? "text-purple-400 font-bold" : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <Sparkles className="w-5 h-5" />
+          <span className="text-[10px] tracking-tight">Animes</span>
+        </Link>
+
+        <Link
+          href="/sagas"
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
+            pathname.startsWith("/sagas") ? "text-brand-gold font-bold" : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <Layers className="w-5 h-5" />
+          <span className="text-[10px] tracking-tight">Sagas</span>
+        </Link>
+
+        <Link
           href="/minha-lista"
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition-colors ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
             pathname === "/minha-lista" ? "text-brand-gold font-bold" : "text-gray-400 hover:text-gray-200"
           }`}
         >
           <Bookmark className="w-5 h-5" />
-          <span className="text-[10px] tracking-tight">Minha Lista</span>
-        </Link>
-
-        <Link
-          href="/historico"
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
-            pathname === "/historico" ? "text-brand-gold font-bold" : "text-gray-400 hover:text-gray-200"
-          }`}
-        >
-          <HistoryIcon className="w-5 h-5" />
-          <span className="text-[10px] tracking-tight">Histórico</span>
-        </Link>
-
-        <Link
-          href="/baixar-app"
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
-            pathname === "/baixar-app" ? "text-emerald-400 font-bold" : "text-gray-400 hover:text-emerald-400"
-          }`}
-        >
-          <Download className="w-5 h-5 text-emerald-400" />
-          <span className="text-[10px] tracking-tight text-emerald-400 font-bold">App</span>
+          <span className="text-[10px] tracking-tight">Lista</span>
         </Link>
 
         {isAdmin ? (
           <Link
             href="/admin"
-            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition-colors ${
+            className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
               pathname === "/admin" ? "text-brand-gold font-bold" : "text-gray-400 hover:text-gray-200"
             }`}
           >
@@ -90,13 +103,13 @@ export default function BottomNav() {
           </Link>
         ) : (
           <Link
-            href={isLogged ? "/login" : "/login"}
-            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition-colors ${
-              pathname === "/login" ? "text-brand-gold font-bold" : "text-gray-400 hover:text-gray-200"
+            href="/baixar-app"
+            className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
+              pathname === "/baixar-app" ? "text-emerald-400 font-bold" : "text-gray-400 hover:text-emerald-400"
             }`}
           >
-            <User className="w-5 h-5" />
-            <span className="text-[10px] tracking-tight">{isLogged ? "Conta" : "Entrar"}</span>
+            <Download className="w-5 h-5 text-emerald-400" />
+            <span className="text-[10px] tracking-tight text-emerald-400 font-bold">App</span>
           </Link>
         )}
       </nav>

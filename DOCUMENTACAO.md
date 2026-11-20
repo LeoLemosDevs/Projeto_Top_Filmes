@@ -1,14 +1,25 @@
-# 🎬 Plataforma Top Filmes (v2.0) - Documentação Técnica e Arquitetura
+# 🎬 Plataforma Top Filmes (v2.1) - Documentação Técnica e Arquitetura
 
-> **Versão Atual: `2.0.0`** (Tag Git: `v2.0.0` | Android `versionCode 2`, `versionName "2.0"`)
+> **Versão Atual: `2.1.0`** (Tag Git: `v2.1.0` | Android `versionCode 3`, `versionName "2.1"`)
 > Plataforma completa de streaming inspirada na experiência da Netflix, voltada para computadores e celulares Android (preparada para publicação na **Google Play Store**), utilizando **hospedagem gratuita na Vercel** e **banco de dados gratuito no Turso (libSQL)**.
 
-### ✨ Novidades da Versão 2.0:
-- **Compartilhamento Social**: Botão de compartilhar filmes no Player, Modal e Banner (Web Share API nativa no celular + menu com WhatsApp, Telegram, Facebook, X/Twitter e Copiar Link com contagem no Analytics).
-- **Continuar de Onde Parou**: Salva automaticamente o minuto/segundo assistido (no Turso DB e `localStorage`) e retoma exatamente do ponto onde parou (suporte nativo a HTML5 MP4, YouTube `&start=`, Dailymotion `&startTime=`, Vimeo `#t=` e aviso visual + botão "Do Início" para demais players).
-- **Painel de Análise & Tráfego Completo para o ADM**: Nova aba `Analytics & Tráfego` em `/admin` com KPIs em tempo real, gráfico diário dos últimos 14 dias, Top 10 mais assistidos, Top 5 mais curtidos, desempenho por gênero e log de atividade recente.
-- **Hashtags & SEO Avançado para o Google**: Campo dedicado de hashtags no cadastro/edição de filmes (com gerador automático), tags clicáveis na interface, `generateMetadata` dinâmico com OpenGraph/Twitter Cards, Schema.org JSON-LD (`Movie`), `/sitemap.xml` dinâmico e `/robots.txt`.
-- **Curtidas nos Filmes**: Sistema completo de curtidas (`movie_likes`) disponível para usuários logados e visitantes com contador em tempo real no Player, Modal, Banner e Cards.
+### ✨ Novidades da Versão 2.1 (Sagas, Séries e Animes):
+- **Sagas & Coleções (`/sagas` e `/sagas/[id]`)**: Área dedicada para agrupar franquias completas de filmes (ex: *Saga Alien*, *Saga Star Wars*, *Coleção Rambo*). Permite ao espectador navegar e maratonar os filmes em ordem cronológica com um clique.
+- **Área para Séries com Temporadas e Episódios (`/series` e `/series/[id]`)**: Catálogo exclusivo para séries de TV organizadas por temporadas (`seasons`) e episódios (`episodes`), com sinopse, duração, miniaturas 16:9 e reprodutor com navegação anterior/próximo e gaveta lateral de episódios.
+- **Área para Animes (`/animes`)**: Seção voltada aos fãs de animes com filtros de gênero (Shounen, Ação, Aventura, etc.), separação por arcos/temporadas e acompanhamento contínuo.
+- **Reprodutor Especializado para Episódios (`/assistir-serie/[seriesId]/[episodeId]`)**: Integração de player multi-plataformas (TokyVideo com auto-conversor de ID, Dailymotion, Google Drive, YouTube, Ok.ru e MP4 direto), botões "Episódio Anterior" e "Próximo Episódio", e gaveta retrátil com todos os episódios para troca instantânea sem sair do vídeo.
+- **Continuar Assistindo para Séries & Animes**: Tabela `series_history` que grava em tempo real o último episódio assistido e o segundo exato de parada, exibindo botão "Continuar de Onde Parou (T{x}:E{y})" na página da série.
+- **Gestão Completa no Painel do ADM (`/admin`)**:
+  - Nova aba **"Sagas & Coleções"**: criação de sagas com banner, pôster, sinopse e seleção/reordenação de filmes com setas para cima/baixo.
+  - Nova aba **"Séries & Animes"**: criação de séries e animes, adição de temporadas e cadastro de episódios com resolução automática de links.
+- **Navegação Expandida**: Navbar no desktop e BottomNav nos celulares agora possuem acesso direto a Início, Séries, Animes e Sagas.
+
+### ✨ Recursos Consolidados da Versão 2.0:
+- **Compartilhamento Social**: Botão de compartilhar filmes no Player, Modal e Banner.
+- **Continuar de Onde Parou para Filmes**: Salva automaticamente o progresso no Turso DB e `localStorage`.
+- **Painel Analytics & Tráfego para o ADM**: Métricas em tempo real e gráficos diários em `/admin`.
+- **Hashtags & SEO Avançado para o Google**: Tags indexáveis e Schema.org `Movie` JSON-LD.
+- **Curtidas nos Filmes**: Sistema interativo de likes com contador em tempo real.
 
 ---
 
@@ -248,6 +259,99 @@ CREATE TABLE IF NOT EXISTS history (
   UNIQUE(user_id, movie_id),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE
+);
+
+-- Sagas & Coleções (v2.1)
+CREATE TABLE IF NOT EXISTS collections (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  synopsis TEXT DEFAULT '',
+  cover_image_url TEXT DEFAULT '',
+  backdrop_url TEXT DEFAULT '',
+  is_featured INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Filmes Pertencentes à Saga na Ordem Cronológica
+CREATE TABLE IF NOT EXISTS collection_movies (
+  collection_id TEXT NOT NULL,
+  movie_id TEXT NOT NULL,
+  order_index INTEGER DEFAULT 1,
+  PRIMARY KEY (collection_id, movie_id),
+  FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
+  FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE
+);
+
+-- Séries e Animes (v2.1)
+CREATE TABLE IF NOT EXISTS series (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  synopsis TEXT NOT NULL,
+  genre TEXT NOT NULL,
+  content_type TEXT DEFAULT 'SERIES', -- 'SERIES' ou 'ANIME'
+  cover_image_url TEXT NOT NULL,
+  backdrop_url TEXT DEFAULT '',
+  release_year INTEGER NOT NULL,
+  status TEXT DEFAULT 'EM_ANDAMENTO',
+  is_featured INTEGER DEFAULT 0,
+  views_count INTEGER DEFAULT 0,
+  likes_count INTEGER DEFAULT 0,
+  shares_count INTEGER DEFAULT 0,
+  hashtags TEXT DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Temporadas das Séries/Animes
+CREATE TABLE IF NOT EXISTS seasons (
+  id TEXT PRIMARY KEY,
+  series_id TEXT NOT NULL,
+  season_number INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  synopsis TEXT DEFAULT '',
+  cover_image_url TEXT DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(series_id, season_number),
+  FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
+);
+
+-- Episódios das Temporadas
+CREATE TABLE IF NOT EXISTS episodes (
+  id TEXT PRIMARY KEY,
+  season_id TEXT NOT NULL,
+  series_id TEXT NOT NULL,
+  episode_number INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  synopsis TEXT DEFAULT '',
+  duration_minutes INTEGER DEFAULT 45,
+  thumbnail_url TEXT DEFAULT '',
+  video_url TEXT NOT NULL,
+  video_type TEXT DEFAULT 'embed',
+  views_count INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(season_id, episode_number),
+  FOREIGN KEY (season_id) REFERENCES seasons(id) ON DELETE CASCADE,
+  FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
+);
+
+-- Histórico de Episódios ("Continuar de Onde Parou" para Séries e Animes)
+CREATE TABLE IF NOT EXISTS series_history (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  series_id TEXT NOT NULL,
+  episode_id TEXT NOT NULL,
+  progress_seconds INTEGER DEFAULT 0,
+  duration_seconds INTEGER DEFAULT 0,
+  completed INTEGER DEFAULT 0,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, series_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE,
+  FOREIGN KEY (episode_id) REFERENCES episodes(id) ON DELETE CASCADE
 );
 ```
 
